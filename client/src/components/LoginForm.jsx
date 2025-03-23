@@ -1,11 +1,25 @@
 import { useState } from "react";
 import { TextField, Button, Box } from "@mui/material";
+import { useDispatch } from "react-redux";
+import { login } from "../actions/authentication";
+import {useNavigate} from "react-router-dom"
 
 const LoginForm = ({ onLogin }) => {
   const [loginData, setLoginData] = useState({ email: "", password: "" });
+  const dispatch = useDispatch();
+  const navigator=useNavigate()
+  
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // Fix: Prevent default form submission
 
-  const handleSubmit = (e) => {
-
+    const response = await dispatch(login(loginData,navigator));
+    
+    if (response?.error) {
+      console.error("Login failed:", response.error);
+    } else {
+      console.log("Login successful:", response);
+      if (onLogin) onLogin(response); // Callback if provided
+    }
   };
 
   return (

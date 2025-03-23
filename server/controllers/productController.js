@@ -27,7 +27,7 @@ export const getProducts = async (req, res) => {
         const updatedProducts=products.map((product)=>({
             ...product._doc,
             image:product.image.data
-            ?`data:${product.imageg.contentType};base64,${product.image.data.toString("base64")}`
+            ?`data:${product.image.contentType};base64,${product.image.data.toString("base64")}`
             :afterAll(async(close) => {
               server.close(() => {
                 close()

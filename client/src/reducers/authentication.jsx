@@ -1,15 +1,18 @@
 import { AUTHENTICATION } from "../constants/actionTypes";
 
-const authenticationReducer=(state={AuthData:null},action)=>{
+const initialState = { AuthData: null };
+
+const authenticationReducer = (state = initialState, action) => {
     switch (action.type) {
         case AUTHENTICATION:
-            localStorage.setItem("profile",JSON.stringify({...action.data}))
             return {
                 ...state,
-                AuthData:action?.data
-            }
+                AuthData: action.payload, // No need for optional chaining
+            };
 
         default:
-            return state
+            return state;
     }
-}
+};
+
+export default authenticationReducer;
