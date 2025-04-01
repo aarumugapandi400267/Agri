@@ -5,11 +5,34 @@ import bcrypt from "bcryptjs";
 export const registerUser = async (req, res) => {
     try {
         const { name, email, password, role } = req.body
+        // Check if all required fields are provided
+        if (!name || !email || !password || !role) {
+            return res.status(400).json({ message: "Please fill all fields" })
+        }
         const userExists = await User.findOne({ email: email })
         if (userExists) return res.status(400).json({
             message: "User already Exists"
+        }    
+    )
+        if (password.length < 6) return res.status(400).json({
+            message: "Password must be at least 6 characters long"
         })
-        
+        if (!/^[A-Z!@#$%^&*()_+{}\[\]:;<>,.?/~\\-]/.test(password)) {
+            return res.status(400).json({
+                message: "Password must start with an uppercase letter or a special character"
+            });
+        }
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+if (!emailRegex.test(email)) {
+    return res.status(400).json({
+        message: "Invalid email format"
+    });
+}
+
+        if (role !== "Farmer" && role !== "Customer") return res.status(400).json({
+            message: "Role must be either Farmer or Customer"
+        })
         const user = await User.create({ name, email, password, role })
 
         if (user) {
