@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Routes,Route } from 'react-router-dom'
 import './App.css'
-import AuthPage from './pages/AuthPage'
-import FarmerDashboard from './components/FarmerDashboard'
+import AuthPage from './pages/farmer/AuthPage'
+import FarmerDashboard from './components/Farmer/FarmerDashboard'
 
 function App() {
 

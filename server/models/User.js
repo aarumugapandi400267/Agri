@@ -1,14 +1,19 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs"
 
-const userSchema=new mongoose.Schema(
+const userSchema = new mongoose.Schema(
     {
-        name:{type:String,required:true},
-        email:{type:String,required:true},
-        password:{type:String,required:true},
-        role:{type:String,enum:["Farmer","Customer"],required:true}
-    },{timestamps:true}
-)
+        name: { type: String, required: true },
+        email: { type: String, required: true, unique: true },
+        password: { type: String, required: true },
+        role: { type: String, enum: ["Farmer", "Customer"], required: true },
+        profileImage: {
+            data: Buffer, // Stores image binary data
+            contentType: String, // Stores MIME type (e.g., "image/png")
+        },
+    },
+    { timestamps: true }
+);
 
 userSchema.pre("save", async function (next) {
     if (!this.isModified("password")) return next();

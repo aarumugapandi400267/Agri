@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { TextField, Button, Box } from "@mui/material";
 
-const RegisterForm = ({ onRegister }) => {
+const RegisterForm = () => {
   const [registerData, setRegisterData] = useState({
     name: "",
     email: "",

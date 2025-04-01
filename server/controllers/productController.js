@@ -23,22 +23,23 @@ export const createProduct = async (req, res) => {
 export const getProducts = async (req, res) => {
     try {
         const products = await Product.find().populate("farmer","name")
-
-        const updatedProducts=products.map((product)=>({
-            ...product._doc,
-            image:product.image.data
-            ?`data:${product.image.contentType};base64,${product.image.data.toString("base64")}`
-            :afterAll(async(close) => {
-              server.close(() => {
-                close()
-               console.log('server closed');
-              })
-            })
-        }))
         
-        res.status(200).json(updatedProducts)
+        res.status(200).json(products)
     } catch (error) {
         res.status(500).json({ message: "Server Error" })
+    }
+}
+
+export const getProductsById=async(req,res)=>{
+    try {
+        const products=await Product.find({
+            "farmer":req.user.id
+        })
+        return products;
+    } catch (error) {
+        res.status(500).json({
+            message: error
+        })
     }
 }
 
@@ -59,7 +60,7 @@ export const updateProduct = async (req, res) => {
         product.stock = req.body.stock || product.stock
 
         const updatedProduct = await product.save()
-        res.json(updateProduct)
+        res.json(updatedProduct)
     } catch (error) {
         res.status(500).json({
             message: "Server error"
