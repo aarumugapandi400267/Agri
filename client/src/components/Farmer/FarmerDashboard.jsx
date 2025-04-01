@@ -6,7 +6,6 @@ import ChecklistRtlIcon from "@mui/icons-material/ChecklistRtl";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import {Avatar} from "@mui/material";
 import { useMediaQuery } from "@mui/material";
-
 import Profile from "./Profile";
 
 const DashboardScreen = () => <Typography variant="h4">Dashboard Content</Typography>;
