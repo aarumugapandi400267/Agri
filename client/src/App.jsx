@@ -3,7 +3,7 @@ import { Routes,Route } from 'react-router-dom'
 import './App.css'
 import AuthPage from './pages/farmer/AuthPage'
 import HomePage from './components/Farmer/home/home'
-import FarmerDashboard from './components/Farmer/FarmerDashboard'
+import FarmerDashboard from './components/Farmer/Dashboard/FarmerDashboard'
 
 function App() {
 

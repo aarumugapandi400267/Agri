@@ -6,9 +6,10 @@ const API = axios.create({
 })
 
 API.interceptors.request.use((req)=>{
-    const token=localStorage.getItem("token")
+    const token=JSON.parse(localStorage.getItem("profile"))["token"]
     if(token){
         req.headers.Authorization=`Bearer ${token}`
+        req.headers["Content-Type"]="application/json"
     }
     return req
 })
@@ -16,8 +17,8 @@ API.interceptors.request.use((req)=>{
 API.interceptors.response.use((response)=>response,(error)=>{
     if(error.response?.status===401){
         console.warn("Session expired. Logging out...");
-        localStorage.removeItem("profile")
-        window.location.href="/signing"
+        // localStorage.removeItem("profile")
+        window.location.href="/auth"
     }
     return Promise.reject(error)
 })

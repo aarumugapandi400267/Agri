@@ -7,8 +7,8 @@ const router=express.Router()
 
 router.post("/",protect,restrictTo("Farmer"),upload.single("image"),createProduct)
 // router.get("/",getProducts)
-router.get("/",getProductsById)
-router.put("/:id",protect,restrictTo("Farmer"),updateProduct)
+router.get("/",protect,getProductsById)
+router.put("/:id",protect,updateProduct)
 router.delete("/:id",protect,restrictTo("Farmer"),deleteProduct)
 
 export default router

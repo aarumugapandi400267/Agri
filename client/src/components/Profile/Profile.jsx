@@ -16,12 +16,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 
 export default function Profile() {
-  const storedProfile = JSON.parse(localStorage.getItem("profile")) || {
-    name: "Pandi",
-    email: "aaru@g.c",
-    role: "Farmer",
-    image: null,
-  };
+  const storedProfile = JSON.parse(localStorage.getItem("profile"));
 
   const [profile, setProfile] = useState(storedProfile);
   const [open, setOpen] = useState(false);
@@ -71,7 +66,7 @@ export default function Profile() {
     >
       <Box sx={{ position: "relative", display: "inline-block", mb: 2 }}>
         <Avatar
-          src={profile.image || ""}
+          src={profile?.image || ""}
           sx={{
             width: 80,
             height: 80,
@@ -81,7 +76,7 @@ export default function Profile() {
             fontSize: 24,
           }}
         >
-          {!profile.image && profile.name[0]}
+          {!profile?.image && profile?.name[0]}
         </Avatar>
         <IconButton
           component="label"

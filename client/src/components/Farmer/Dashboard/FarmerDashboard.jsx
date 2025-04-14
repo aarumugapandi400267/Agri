@@ -4,38 +4,43 @@ import MenuIcon from "@mui/icons-material/Menu";
 import ListAltIcon from "@mui/icons-material/ListAlt";
 import ChecklistRtlIcon from "@mui/icons-material/ChecklistRtl";
 import DashboardIcon from "@mui/icons-material/Dashboard";
-import {Avatar} from "@mui/material";
+import { Avatar } from "@mui/material";
 import { useMediaQuery } from "@mui/material";
-import Profile from "./Profile";
+import { useDispatch } from "react-redux";
+import ProductList from "../Product/ProductList";
+import Profile from "../../Profile/Profile";
+import DashboardScreen from "./DashboardScreen";
 
-const DashboardScreen = () => <Typography variant="h4">Dashboard Content</Typography>;
-const ProductsScreen = () => <Typography variant="h4">Products List</Typography>;
 const OrdersScreen = () => <Typography variant="h4">Orders Management</Typography>;
-
-const NAVIGATION = [
-  { 
-    title: "Profile", 
-    icon: (
-      <Avatar src={JSON.parse(localStorage.getItem("profile"))?.image || ""}>
-        { !JSON.parse(localStorage.getItem("profile"))?.image &&
-          JSON.parse(localStorage.getItem("profile"))?.name.charAt(0)
-        }
-      </Avatar>
-    ), 
-    component: <Profile /> 
-  },  
-  { title: "Dashboard", icon: <DashboardIcon />, component: <DashboardScreen /> },
-  { title: "Products", icon: <ListAltIcon />, component: <ProductsScreen /> },
-  { title: "Orders", icon: <ChecklistRtlIcon />, component: <OrdersScreen /> },
-];
 
 export default function FarmerDashboard() {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [activeTab, setActiveTab] = useState("Dashboard");
   const [mobileOpen, setMobileOpen] = useState(false);
   const isMobile = useMediaQuery("(max-width: 768px)"); // Detects mobile screen size
+  const dispatch = useDispatch();
 
   const toggleSidebar = () => setMobileOpen(!mobileOpen);
+
+  const NAVIGATION = [
+    {
+      title: "Profile",
+      icon: (
+        <Avatar src={JSON.parse(localStorage.getItem("profile"))?.image || ""}>
+          {!JSON.parse(localStorage.getItem("profile"))?.image &&
+            JSON.parse(localStorage.getItem("profile"))?.name.charAt(0)}
+        </Avatar>
+      ),
+      component: <Profile />,
+    },
+    { title: "Dashboard", icon: <DashboardIcon />, component: <DashboardScreen /> },
+    {
+      title: "Products",
+      icon: <ListAltIcon />,
+      component: <ProductList dispatch={dispatch} />, // Pass dispatch to ProductList
+    },
+    { title: "Orders", icon: <ChecklistRtlIcon />, component: <OrdersScreen /> },
+  ];
 
   return (
     <Box sx={{ display: "flex", height: "100vh" }}>
@@ -70,7 +75,6 @@ export default function FarmerDashboard() {
           },
         }}
       >
-        {/* Toggle Button */}
         {!isMobile && (
           <Box sx={{ display: "flex", justifyContent: isCollapsed ? "center" : "flex-end", p: 1 }}>
             <IconButton onClick={() => setIsCollapsed(!isCollapsed)} sx={{ color: "#fff" }}>
@@ -79,7 +83,6 @@ export default function FarmerDashboard() {
           </Box>
         )}
 
-        {/* Navigation Items */}
         <List>
           {NAVIGATION.map((item) => (
             <ListItem
@@ -89,11 +92,14 @@ export default function FarmerDashboard() {
                 setActiveTab(item.title);
                 if (isMobile) toggleSidebar();
               }}
-              sx={{ bgcolor: activeTab === item.title ? "#34495e" : "transparent",marginBottom:"5px",
-                "&:hover":{
-                   bgcolor: "#1f2b38",cursor:"pointer"
-                }
-               }}
+              sx={{
+                bgcolor: activeTab === item.title ? "#34495e" : "transparent",
+                marginBottom: "5px",
+                "&:hover": {
+                  bgcolor: "#1f2b38",
+                  cursor: "pointer",
+                },
+              }}
             >
               <ListItemIcon sx={{ color: "#fff" }}>{item.icon}</ListItemIcon>
               {!isCollapsed && !isMobile && <ListItemText primary={item.title} />}

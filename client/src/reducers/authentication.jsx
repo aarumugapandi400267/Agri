@@ -7,7 +7,7 @@ const authenticationReducer = (state = initialState, action) => {
         case AUTHENTICATION:
             return {
                 ...state,
-                AuthData: action.payload, // No need for optional chaining
+                AuthData: action.payload, 
             };
 
         default:

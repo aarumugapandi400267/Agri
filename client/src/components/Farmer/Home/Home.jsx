@@ -8,21 +8,21 @@ const HomePage = () => {
     <>
       {/* 🌄 Hero Section */}
       <Box
-  sx={{
-    minHeight: "90vh",
-    backgroundImage: `url("/src/assets/FarKit-Image-background.png")`,
-    backgroundSize: "cover",
-    backgroundPosition: "top center",
-    backgroundRepeat: "no-repeat",
-    position: "relative",
-    display: "flex",
-    flexDirection: "column",
-    borderRadius: 4, // ✅ curved corners (theme spacing * 0.5 = 4px * 4 = 16px)
-    boxShadow: 4, // ✅ soft shadow (you can try 2 or 6 for lighter/darker)
-    overflow: "hidden", // ✅ hides overflow if corners cut off background
-    m: 2, // optional margin for spacing from edge
-  }}
->
+        sx={{
+          minHeight: "90vh",
+          backgroundImage: `url("/src/assets/FarKit-Image-background.png")`,
+          backgroundSize: "cover",
+          backgroundPosition: "top center",
+          backgroundRepeat: "no-repeat",
+          position: "relative",
+          display: "flex",
+          flexDirection: "column",
+          borderRadius: 4, // ✅ curved corners (theme spacing * 0.5 = 4px * 4 = 16px)
+          boxShadow: 4, // ✅ soft shadow (you can try 2 or 6 for lighter/darker)
+          overflow: "hidden", // ✅ hides overflow if corners cut off background
+          m: 2, // optional margin for spacing from edge
+        }}
+      >
 
         {/* 🔗 Logo */}
         <Box
@@ -71,7 +71,7 @@ const HomePage = () => {
               variant="contained"
               color="primary"
               sx={{ mr: 2, mt: 2 }}
-              onClick={() => navigate("/login")}
+              onClick={() => navigate("/auth")}
             >
               Login
             </Button>
@@ -79,7 +79,7 @@ const HomePage = () => {
               variant="outlined"
               color="secondary"
               sx={{ mt: 2 }}
-              onClick={() => navigate("/register")}
+              onClick={() => navigate("/auth")}
             >
               Register
             </Button>
@@ -127,68 +127,68 @@ const HomePage = () => {
           </Typography>
         </Container>
       </Box>
-{/* 🔻 Footer */}
-<Box sx={{ backgroundColor: "#fff9c4", py: 4, px: 2, mt: 4 }}>
-  <Container maxWidth="lg">
-    {/* 🌐 Side-by-side About, Contact, Address */}
-    <Box
-      sx={{
-        display: "flex",
-        justifyContent: "space-around",
-        alignItems: "flex-start",
-        flexDirection: { xs: "column", md: "row" },
-        gap: 4,
-        textAlign: "center",
-      }}
-    >
-      {/* 🌱 About Us */}
-      <Box sx={{ flex: 1 }}>
-        <Typography variant="h6" color="primary" gutterBottom>
-          About Us
-        </Typography>
-        <Typography variant="body1" color="textSecondary">
-          Farkit is on a mission to empower local farmers by connecting them
-          directly with vendors — removing middlemen and creating growth for all.
-        </Typography>
-      </Box>
+      {/* 🔻 Footer */}
+      <Box sx={{ backgroundColor: "#fff9c4", py: 4, px: 2, mt: 4 }}>
+        <Container maxWidth="lg">
+          {/* 🌐 Side-by-side About, Contact, Address */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-around",
+              alignItems: "flex-start",
+              flexDirection: { xs: "column", md: "row" },
+              gap: 4,
+              textAlign: "center",
+            }}
+          >
+            {/* 🌱 About Us */}
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="h6" color="primary" gutterBottom>
+                About Us
+              </Typography>
+              <Typography variant="body1" color="textSecondary">
+                Farkit is on a mission to empower local farmers by connecting them
+                directly with vendors — removing middlemen and creating growth for all.
+              </Typography>
+            </Box>
 
-      {/* 📬 Contact */}
-      <Box sx={{ flex: 1 }}>
-        <Typography variant="h6" color="primary" gutterBottom>
-          Contact
-        </Typography>
-        <Typography variant="body1" color="textSecondary" sx={{ mb: 1 }}>
-          📞 Phone: 122-343-43
-        </Typography>
-        <Typography variant="body1" color="textSecondary">
-          📧 Email: support@farkit-fake.com
-        </Typography>
-      </Box>
+            {/* 📬 Contact */}
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="h6" color="primary" gutterBottom>
+                Contact
+              </Typography>
+              <Typography variant="body1" color="textSecondary" sx={{ mb: 1 }}>
+                📞 Phone: 122-343-43
+              </Typography>
+              <Typography variant="body1" color="textSecondary">
+                📧 Email: support@farkit-fake.com
+              </Typography>
+            </Box>
 
-      {/* 🏠 Address */}
-      <Box sx={{ flex: 1 }}>
-        <Typography variant="h6" color="primary" gutterBottom>
-          Address
-        </Typography>
-        <Typography variant="body1" color="textSecondary" sx={{ mb: 1 }}>
-          🏡 Farkit HQ<br />
-          123 Greenfield Road<br />
-          Agritown, FarmState, 999999
-        </Typography>
-      </Box>
-    </Box>
+            {/* 🏠 Address */}
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="h6" color="primary" gutterBottom>
+                Address
+              </Typography>
+              <Typography variant="body1" color="textSecondary" sx={{ mb: 1 }}>
+                🏡 Farkit HQ<br />
+                123 Greenfield Road<br />
+                Agritown, FarmState, 999999
+              </Typography>
+            </Box>
+          </Box>
 
-    {/* 🔻 Footer Bottom Text */}
-    <Box sx={{ textAlign: "center", mt: 4 }}>
-      <Typography variant="body2" color="textSecondary">
-        © {new Date().getFullYear()} Farkit. All rights reserved.
-      </Typography>
-      <Typography variant="body2" color="textSecondary">
-        Made with ❤️ to support farmers & local vendors.
-      </Typography>
-    </Box>
-  </Container>
-</Box>
+          {/* 🔻 Footer Bottom Text */}
+          <Box sx={{ textAlign: "center", mt: 4 }}>
+            <Typography variant="body2" color="textSecondary">
+              © {new Date().getFullYear()} Farkit. All rights reserved.
+            </Typography>
+            <Typography variant="body2" color="textSecondary">
+              Made with ❤️ to support farmers & local vendors.
+            </Typography>
+          </Box>
+        </Container>
+      </Box>
 
 
 

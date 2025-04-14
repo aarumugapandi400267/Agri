@@ -11,7 +11,7 @@ export const login = (formData,navigate) => async (dispatch) => {
             payload: data,
         });
         navigate('/dashboard')
-        return data; // Return data for further handling in the component
+        return data; 
     } catch (error) {
         console.error("Login failed:", error.response?.data || error.message);
         return { error: error.response?.data || error.message };

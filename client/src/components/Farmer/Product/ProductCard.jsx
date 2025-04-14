@@ -10,7 +10,7 @@ const ProductCard = ({ product }) => {
           image={`data:${product.image.contentType};base64,${product.image.data}`}
           alt={product.name}
         />
-      )}
+      )} 
       <CardContent>
         <Typography variant="h6">{product.name}</Typography>
         <Typography variant="body2" color="text.secondary">
