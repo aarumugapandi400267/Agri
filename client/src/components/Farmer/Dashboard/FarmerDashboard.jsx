@@ -8,7 +8,7 @@ import { Avatar } from "@mui/material";
 import { useMediaQuery } from "@mui/material";
 import { useDispatch } from "react-redux";
 import ProductList from "../Product/ProductList";
-import Profile from "../../Profile/Profile";
+import Profile from "../Profile/Profile";
 import DashboardScreen from "./DashboardScreen";
 
 const OrdersScreen = () => <Typography variant="h4">Orders Management</Typography>;

@@ -5,14 +5,21 @@ const API = axios.create({
     withCredentials:true
 })
 
-API.interceptors.request.use((req)=>{
-    const token=JSON.parse(localStorage.getItem("profile"))["token"]
-    if(token){
-        req.headers.Authorization=`Bearer ${token}`
-        req.headers["Content-Type"]="application/json"
+API.interceptors.request.use((req) => {
+    const token = JSON.parse(localStorage.getItem("profile"))?.token;
+  
+    if (token) {
+      req.headers.Authorization = `Bearer ${token}`;
     }
-    return req
-})
+  
+    // ✅ Only set Content-Type to application/json if not sending FormData
+    if (!(req.data instanceof FormData)) {
+      req.headers["Content-Type"] = "application/json";
+    }
+  
+    return req;
+  });
+  
 
 API.interceptors.response.use((response)=>response,(error)=>{
     if(error.response?.status===401){

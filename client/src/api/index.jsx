@@ -2,8 +2,16 @@ import API from "./axiosConfig";
 
 export const login = async (formData) => await API.post("/auth/login", formData);
 export const register = async (formData) => await API.post("/auth/register", formData);
+
+export const getUser=async()=>{return await API.get("/users/profile")}
+
 export const updateUser=async (formData) => {
-    await API.put("users/profile",formData)
+    try {
+        return await API.put("/users/profile",formData)
+    } catch (error) {
+        console.error("Error updating profile:", error.response?.data || error.message);
+        throw error; 
+    }
 }
 
 export const getProducts = async () => {

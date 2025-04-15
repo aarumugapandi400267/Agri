@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { updateUser, getUser } from "../../../actions/user";
+import { useDispatch } from "react-redux";
 import {
   Box,
   Button,
@@ -16,39 +18,70 @@ import EditIcon from "@mui/icons-material/Edit";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 
 export default function Profile() {
-  const storedProfile = JSON.parse(localStorage.getItem("profile"));
-
-  const [profile, setProfile] = useState(storedProfile);
+  const dispatch = useDispatch();
+  const [profile, setProfile] = useState(null);
   const [open, setOpen] = useState(false);
-  const [editProfile, setEditProfile] = useState(storedProfile);
+  const [editProfile, setEditProfile] = useState({
+    name: "",
+    email: "",
+    image: null,
+  });
+  const [previewImage, setPreviewImage] = useState(null); // for preview only
+
+  useEffect(() => {
+    dispatch(getUser())
+      .then((data) => {
+        setProfile(data);
+        setEditProfile(data);
+      })
+      .catch((err) => console.error("Failed to fetch user:", err));
+  }, [dispatch]);
 
   const handleOpen = () => {
     setEditProfile(profile);
+    setPreviewImage(null);
     setOpen(true);
   };
 
-  const handleClose = () => setOpen(false);
+  const handleClose = () => {
+    setOpen(false);
+    setPreviewImage(null);
+  };
 
   const handleChange = (e) => {
     setEditProfile({ ...editProfile, [e.target.name]: e.target.value });
   };
 
   const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setEditProfile({ ...editProfile, image: reader.result });
-      };
-      reader.readAsDataURL(file);
-    }
+    setEditProfile({ ...editProfile, image: e.target.files[0] });
+    console.log(editProfile)
+    setPreviewImage(URL.createObjectURL(e.target.files[0])); // show preview
   };
 
   const handleSave = () => {
-    localStorage.setItem("profile", JSON.stringify(editProfile));
-    setProfile(editProfile);
-    setOpen(false);
+    const formData = new FormData();
+    formData.append("name", editProfile.name);
+    formData.append("email", editProfile.email);
+    if (editProfile.image) {
+      formData.append("profileImage", editProfile.image);
+    }
+
+    // Iterate over FormData and log each entry
+    for (let [key, value] of formData.entries()) {
+      console.log(key, value);
+    }
+
+    dispatch(updateUser(formData))
+      .then((updated) => {
+        setProfile(updated);
+        setOpen(false);
+        setPreviewImage(null);
+      })
+      .catch((err) => console.error("Update failed:", err));
   };
+
+
+  if (!profile) return <Typography>Loading...</Typography>;
 
   return (
     <Paper
@@ -66,7 +99,7 @@ export default function Profile() {
     >
       <Box sx={{ position: "relative", display: "inline-block", mb: 2 }}>
         <Avatar
-          src={profile?.image || ""}
+          src={profile?.profileImage || ""}
           sx={{
             width: 80,
             height: 80,
@@ -76,7 +109,7 @@ export default function Profile() {
             fontSize: 24,
           }}
         >
-          {!profile?.image && profile?.name[0]}
+          {!profile?.profileImage && profile?.name[0]}
         </Avatar>
         <IconButton
           component="label"
@@ -129,7 +162,7 @@ export default function Profile() {
         </Button>
       </Box>
 
-      {/* Edit Profile Popup */}
+      {/* Edit Dialog */}
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle sx={{ fontWeight: "bold", textAlign: "center" }}>
           Edit Profile
@@ -137,7 +170,7 @@ export default function Profile() {
         <DialogContent>
           <Box sx={{ textAlign: "center", mb: 2 }}>
             <Avatar
-              src={editProfile.image || ""}
+              src={previewImage || profile?.profileImage || ""}
               sx={{
                 width: 80,
                 height: 80,
@@ -147,7 +180,7 @@ export default function Profile() {
                 fontSize: 24,
               }}
             >
-              {!editProfile.image && editProfile.name[0]}
+              {!previewImage && !profile?.profileImage && editProfile.name[0]}
             </Avatar>
             <Button component="label" variant="outlined" startIcon={<PhotoCameraIcon />}>
               Upload Image
@@ -158,7 +191,7 @@ export default function Profile() {
           <TextField
             label="Name"
             name="name"
-            value={editProfile.name}
+            value={editProfile.name || ""}
             onChange={handleChange}
             fullWidth
             margin="normal"
@@ -166,7 +199,7 @@ export default function Profile() {
           <TextField
             label="Email"
             name="email"
-            value={editProfile.email}
+            value={editProfile.email || ""}
             onChange={handleChange}
             fullWidth
             margin="normal"

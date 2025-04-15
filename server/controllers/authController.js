@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 
 export const registerUser = async (req, res) => {
     try {
-        const { name, email, password, role } = req.body
+        const { name, email, password, role = "Farmer" } = req.body
         // Check if all required fields are provided
         if (!name || !email || !password || !role) {
             return res.status(400).json({ message: "Please fill all fields" })
@@ -12,8 +12,8 @@ export const registerUser = async (req, res) => {
         const userExists = await User.findOne({ email: email })
         if (userExists) return res.status(400).json({
             message: "User already Exists"
-        }    
-    )
+        }
+        )
         if (password.length < 6) return res.status(400).json({
             message: "Password must be at least 6 characters long"
         })
@@ -24,11 +24,11 @@ export const registerUser = async (req, res) => {
         }
         const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-if (!emailRegex.test(email)) {
-    return res.status(400).json({
-        message: "Invalid email format"
-    });
-}
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({
+                message: "Invalid email format"
+            });
+        }
 
         if (role !== "Farmer" && role !== "Customer") return res.status(400).json({
             message: "Role must be either Farmer or Customer"
@@ -70,12 +70,12 @@ export const loginUser = async (req, res) => {
             name: user.name,
             email: user.email,
             role: user.role,
-            profileImage:user.profileImage,
+            profileImage: user.profileImage,
             token: generateToken(user._id)
         })
     } catch (error) {
         res.status(500).json({
-            message:"Server error"
+            message: "Server error"
         })
     }
 }

@@ -40,7 +40,13 @@ export const updateUserProfile = async (req, res) => {
         }
 
         const updatedUser = await user.save();
-        res.json(updatedUser);
+
+        res.json({
+            ...updatedUser.toObject(),
+            profileImage: updatedUser.profileImage?.data
+                ? `data:${updatedUser.profileImage.contentType};base64,${updatedUser.profileImage.data.toString("base64")}`
+                : null,
+        });
     } catch (error) {
         res.status(500).json({ message: "Server error" });
     }

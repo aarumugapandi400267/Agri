@@ -1,11 +1,26 @@
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, Typography, CardMedia, Grid, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Box } from "@mui/material";
+import {
+  Card,
+  CardContent,
+  Typography,
+  CardMedia,
+  Grid,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
+  Box,
+  Snackbar,
+  Alert
+} from "@mui/material";
 import { getProductsById, updateProductById, createProduct } from "../../../actions/products";
 
 const ProductList = ({ dispatch }) => {
   const [products, setProducts] = useState([]);
   const [open, setOpen] = useState(false);
-  const [addOpen, setAddOpen] = useState(false); // State for Add Product dialog
+  const [addOpen, setAddOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [newProduct, setNewProduct] = useState({
     name: "",
@@ -15,15 +30,31 @@ const ProductList = ({ dispatch }) => {
     image: null,
   });
 
+  // Snackbar state
+  const [snackOpen, setSnackOpen] = useState(false);
+  const [snackMessage, setSnackMessage] = useState("");
+  const [snackSeverity, setSnackSeverity] = useState("success");
+
+  const showSnackbar = (message, severity = "success") => {
+    setSnackMessage(message);
+    setSnackSeverity(severity);
+    setSnackOpen(true);
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackOpen(false);
+  };
+
+  const fetchProducts = async () => {
+    const response = await dispatch(getProductsById());
+    if (!response.error) {
+      setProducts(response.products);
+    } else {
+      console.error("Failed to fetch products:", response.error);
+    }
+  };
+
   useEffect(() => {
-    const fetchProducts = async () => {
-      const response = await dispatch(getProductsById());
-      if (!response.error) {
-        setProducts(response.products);
-      } else {
-        console.error("Failed to fetch products:", response.error);
-      }
-    };
     fetchProducts();
   }, [dispatch]);
 
@@ -38,11 +69,11 @@ const ProductList = ({ dispatch }) => {
   };
 
   const handleAddOpen = () => {
-    setAddOpen(true); // Open Add Product dialog
+    setAddOpen(true);
   };
 
   const handleAddClose = () => {
-    setAddOpen(false); // Close Add Product dialog
+    setAddOpen(false);
     setNewProduct({
       name: "",
       description: "",
@@ -63,7 +94,10 @@ const ProductList = ({ dispatch }) => {
   };
 
   const handleImageChange = (e) => {
-    setNewProduct({ ...newProduct, image: e.target.files[0] });
+    const file = e.target.files[0];
+    if (file) {
+      setNewProduct({ ...newProduct, image: file });
+    }
   };
 
   const handleSave = async () => {
@@ -74,12 +108,16 @@ const ProductList = ({ dispatch }) => {
           const updatedProducts = products.map((product) =>
             product._id === selectedProduct._id ? result : product
           );
+          await fetchProducts();
           setProducts(updatedProducts);
+          showSnackbar("Product updated successfully!", "success");
         } else {
           console.error("Failed to update product:", result?.error || "Unknown error");
+          showSnackbar("Failed to update product", "error");
         }
       } catch (error) {
         console.error("Error during product update:", error);
+        showSnackbar("Error while updating product", "error");
       }
     }
     handleClose();
@@ -95,28 +133,28 @@ const ProductList = ({ dispatch }) => {
       formData.append("image", newProduct.image);
     }
 
-    for (let [key, value] of formData.entries()) {
-      console.log(key, value);
+    try {
+      const result = await dispatch(createProduct(formData));
+      if (!result.error) {
+        await fetchProducts(); 
+        setProducts([...products, result]);
+        showSnackbar("Product added successfully!", "success");
+      } else {
+        console.error("Failed to add product:", result.error);
+        showSnackbar("Failed to add product", "error");
+      }
+      handleAddClose();
+    } catch (error) {
+      console.error("Error during product creation:", error);
+      showSnackbar("Error while adding product", "error");
     }
-    
-    const result = await dispatch(createProduct(formData)); // Pass FormData directly
-    if (!result.error) {
-      setProducts([...products, result]); // Add the new product to the list
-    } else {
-      console.error("Failed to add product:", result.error);
-    }
-    handleAddClose();
   };
 
   return (
     <>
       {/* Add Product Button */}
       <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleAddOpen}
-        >
+        <Button variant="contained" color="primary" onClick={handleAddOpen}>
           Add Product
         </Button>
       </Box>
@@ -128,15 +166,15 @@ const ProductList = ({ dispatch }) => {
               <Card>
                 {product.image && product.image.data ? (
                   <CardMedia
-                  component="img"
-                  height="150"
-                  image={
-                    product.image && product.image.data
-                      ? `data:${product.image.contentType};base64,${product.image.data}`
-                      : "/placeholder.jpg"
-                  }
-                  alt={product.name}
-                />
+                    component="img"
+                    height="150"
+                    image={
+                      product.image && product.image.data
+                        ? `data:${product.image.contentType};base64,${product.image.data}`
+                        : "/placeholder.jpg"
+                    }
+                    alt={product.name}
+                  />
                 ) : (
                   <CardMedia
                     component="img"
@@ -266,6 +304,18 @@ const ProductList = ({ dispatch }) => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Snackbar */}
+      <Snackbar
+        open={snackOpen}
+        autoHideDuration={3000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackSeverity} sx={{ width: "100%" }}>
+          {snackMessage}
+        </Alert>
+      </Snackbar>
     </>
   );
 };

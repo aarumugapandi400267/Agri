@@ -1,4 +1,4 @@
-import { CREATEPRODUCT, GETPRODUCTS, UPDATEPRODUCT } from "../constants/actionTypes";
+import { CREATEPRODUCT, GETPRODUCTS, GETUSER, UPDATEPRODUCT, UPDATEUSER } from "../constants/actionTypes";
 
 const initialState = {}
 
@@ -11,7 +11,12 @@ const farmerReducer = (state = initialState, action) => {
                 ...state,
                 farmerProducts: action.payload
             }
-
+        case GETUSER:
+        case UPDATEUSER:
+            return {
+                ...state,
+                profile:action.payload
+            }
         default:
             return state;
     }
