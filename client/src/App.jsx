@@ -4,6 +4,8 @@ import './App.css'
 import AuthPage from './pages/farmer/AuthPage'
 import HomePage from './components/Farmer/home/home'
 import FarmerDashboard from './components/Farmer/Dashboard/FarmerDashboard'
+import LandingPage from './components/Buyer/Landing/LandingPage'
+import ProductDetail from './components/Buyer/Product/ProductDetail'
 
 function App() {
 
@@ -13,6 +15,9 @@ function App() {
         <Route path='/auth' element={<AuthPage/>}></Route>
         <Route path='/dashboard' element={<FarmerDashboard/>}></Route>
         <Route path='/' element={<HomePage/>}></Route>
+
+        <Route path='/home' element={<LandingPage/>}></Route>
+        <Route path="/product/:id" element={<ProductDetail />} />
       </Routes>
     </>
   )

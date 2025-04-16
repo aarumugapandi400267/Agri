@@ -12,7 +12,7 @@ export const getProductsById = () => async (dispatch) => {
 
         return data;
     } catch (error) {
-        console.error("Login failed:", error.response?.data || error.message);
+        console.error("Product fetch failed:", error.response?.data || error.message);
         return { error: error.response?.data || error.message };
     }
 }

@@ -73,16 +73,16 @@ const HomePage = () => {
               sx={{ mr: 2, mt: 2 }}
               onClick={() => navigate("/auth")}
             >
-              Login
+              Get Started
             </Button>
-            <Button
+            {/* <Button
               variant="outlined"
               color="secondary"
               sx={{ mt: 2 }}
               onClick={() => navigate("/auth")}
             >
               Register
-            </Button>
+            </Button> */}
           </Container>
         </Box>
       </Box>

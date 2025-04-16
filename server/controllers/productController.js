@@ -29,13 +29,27 @@ export const createProduct = async (req, res) => {
 
 export const getProducts = async (req, res) => {
     try {
-        const products = await Product.find().populate("farmer","name")
-        
-        res.status(200).json(products)
+      const products = await Product.find()
+        .populate("farmer", "name")
+        .lean(); // Important: convert Mongoose documents to plain JS objects
+  
+      const formattedProducts = products.map((product) => {
+        return {
+          ...product,
+          id: product._id, // Keep product id if needed on frontend
+          farmer: product.farmer?.name || "Unknown",
+          _id: undefined, // Remove _id
+          __v: undefined, // Remove __v if needed
+        };
+      });
+  
+      res.status(200).json(formattedProducts);
     } catch (error) {
-        res.status(500).json({ message: "Server Error" })
+      console.error("Error in getProducts:", error);
+      res.status(500).json({ message: "Server Error" });
     }
-}
+  };
+  
 
 export const getProductsById = async (req, res) => {
     try {
