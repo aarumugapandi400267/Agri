@@ -6,6 +6,7 @@ import HomePage from './components/Farmer/home/home'
 import FarmerDashboard from './components/Farmer/Dashboard/FarmerDashboard'
 import LandingPage from './components/Buyer/Landing/LandingPage'
 import ProductDetail from './components/Buyer/Product/ProductDetail'
+import Razorpay from './components/Buyer/PaymentPage'
 
 function App() {
 
@@ -18,6 +19,8 @@ function App() {
 
         <Route path='/home' element={<LandingPage/>}></Route>
         <Route path="/product/:id" element={<ProductDetail />} />
+
+        <Route path='/payment' element={<Razorpay/>}></Route>
       </Routes>
     </>
   )

@@ -33,7 +33,7 @@ export const register = (formData, navigate) => async (dispatch) => {
         });
 
         if (data.role == "Farmer") {
-            navigate('/dashboard')
+            navigate('/auth')
         } else {
             navigate("/")
         }
