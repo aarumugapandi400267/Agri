@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { TextField, Button, Box } from "@mui/material";
+import { TextField, Button, Box, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
 import { register } from "../../../actions/authentication";
 import { useDispatch } from "react-redux";
-import { useNavigate} from "react-router-dom"
+import { useNavigate } from "react-router-dom";
 
 const RegisterForm = () => {
   const [registerData, setRegisterData] = useState({
@@ -10,6 +10,7 @@ const RegisterForm = () => {
     email: "",
     password: "",
     repeatPassword: "",
+    role: "Farmer", // Default role
   });
 
   const [errors, setErrors] = useState({
@@ -54,13 +55,13 @@ const RegisterForm = () => {
     return valid;
   };
 
-  const dispatch=useDispatch()
-  const navigate=useNavigate()
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validate()) {
-      dispatch(register(registerData,navigate))
+      dispatch(register(registerData, navigate));
     }
   };
 
@@ -109,6 +110,16 @@ const RegisterForm = () => {
         error={!!errors.repeatPassword}
         helperText={errors.repeatPassword}
       />
+      <FormControl fullWidth margin="normal">
+        <InputLabel>Role</InputLabel>
+        <Select
+          value={registerData.role}
+          onChange={(e) => setRegisterData({ ...registerData, role: e.target.value })}
+        >
+          <MenuItem value="Farmer">Farmer</MenuItem>
+          <MenuItem value="Customer">Customer</MenuItem>
+        </Select>
+      </FormControl>
       <Button fullWidth variant="contained" color="secondary" sx={{ mt: 2 }} type="submit">
         Register
       </Button>

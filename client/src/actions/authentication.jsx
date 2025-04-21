@@ -4,7 +4,8 @@ import { AUTHENTICATION } from "../constants/actionTypes";
 export const login = (formData, navigate) => async (dispatch) => {
     try {
         const { data } = await api.login(formData);
-        localStorage.setItem("profile", JSON.stringify(data)); // Store user data
+        localStorage.setItem("profile"+data.role+data._id, JSON.stringify(data)); // Store user data
+
         dispatch({
             type: AUTHENTICATION,
             payload: data,
@@ -25,7 +26,8 @@ export const login = (formData, navigate) => async (dispatch) => {
 export const register = (formData, navigate) => async (dispatch) => {
     try {
         const { data } = await api.register(formData);
-        // localStorage.setItem("profile", JSON.stringify(data)); // Store user data
+        localStorage.setItem("profile"+data.role+data._id, JSON.stringify(data)); // Store user data
+
 
         dispatch({
             type: AUTHENTICATION,
@@ -35,11 +37,11 @@ export const register = (formData, navigate) => async (dispatch) => {
         if (data.role == "Farmer") {
             navigate('/auth')
         } else {
-            navigate("/")
+            navigate("/home")
         }
         return data;
     } catch (error) {
-        console.error("Login failed:", error.response?.data || error.message);
+        console.error("Registration failed:", error.response?.data || error.message);
         return { error: error.response?.data || error.message };
     }
 };
