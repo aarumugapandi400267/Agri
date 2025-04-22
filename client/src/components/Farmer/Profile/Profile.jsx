@@ -196,14 +196,14 @@ export default function Profile() {
             fullWidth
             margin="normal"
           />
-          <TextField
+          {/* <TextField
             label="Email"
             name="email"
             value={editProfile.email || ""}
             onChange={handleChange}
             fullWidth
             margin="normal"
-          />
+          /> */}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose} color="error">
