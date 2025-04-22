@@ -6,7 +6,7 @@ import HomePage from './components/Farmer/Home/Home'
 import FarmerDashboard from './components/Farmer/Dashboard/FarmerDashboard'
 import LandingPage from './components/Buyer/Landing/LandingPage'
 import ProductDetail from './components/Buyer/Product/ProductDetail'
-import Razorpay from './components/Buyer/PaymentPage'
+import Razorpay from './components/Buyer/Payment/PaymentPage'
 
 function App() {
 
