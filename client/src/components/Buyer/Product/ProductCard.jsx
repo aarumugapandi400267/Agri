@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardMedia, Typography, Button, Box, Link } from '@mui/material';
+import { Card, CardContent, CardMedia, Typography, Button, Box, Link, Tooltip } from '@mui/material';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
+
 
 export default function ProductCard({ product }) {
     const navigate = useNavigate();
@@ -76,7 +79,17 @@ export default function ProductCard({ product }) {
                 </Box>
 
                 <Box mt={2} textAlign="center">
-                    <Button variant="contained" color="primary">Buy Now</Button>
+                    <Tooltip title="Buy Now">
+                        <Button variant="contained" color="primary" sx={{ mr: 1 }}>
+                            <ShoppingBagIcon />
+                        </Button>
+                    </Tooltip>
+
+                    <Tooltip title="Add to Cart">
+                        <Button variant="contained" color="primary">
+                            <ShoppingCartIcon />
+                        </Button>
+                    </Tooltip>
                 </Box>
             </CardContent>
         </Card>
