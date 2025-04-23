@@ -10,7 +10,7 @@ import reviewRoutes from "./routes/reviewRoutes.js"
 import cartRoutes from "./routes/customer/cart.js"
 import errorHandler from './middlewares/errorMiddleware.js'
 import cors from "cors"
-
+import paymnet from "./controllers/Payment.js"
 dotenv.config()
 connectDB() 
 
@@ -32,7 +32,7 @@ app.use("/api/products", productRoutes)
 app.use("/api/orders", orderRoutes)
 app.use("/api/reviews", reviewRoutes)
 app.use("/api/cart", cartRoutes)
-
+app.use("/api/paymnet",paymnet);
 app.use(errorHandler)
 
 const PORT = process.env.PORT
