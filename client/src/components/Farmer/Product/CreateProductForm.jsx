@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Dialog, DialogActions, DialogContent, DialogTitle, TextField, Button } from "@mui/material";
+import { Dialog, DialogActions, DialogContent, DialogTitle, TextField, Button, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 
 const CreateProductForm = ({ open, onClose }) => {
   const [formData, setFormData] = useState({
@@ -7,6 +7,7 @@ const CreateProductForm = ({ open, onClose }) => {
     description: "",
     price: "",
     stock: "",
+    category: "",
     image: null,
   });
 
@@ -25,6 +26,8 @@ const CreateProductForm = ({ open, onClose }) => {
     data.append("description", formData.description);
     data.append("price", formData.price);
     data.append("stock", formData.stock);
+    data.append("category", formData.category);
+
     if (formData.image) {
       data.append("image", formData.image);
     }
@@ -75,6 +78,19 @@ const CreateProductForm = ({ open, onClose }) => {
           onChange={handleChange}
           margin="dense"
         />
+        <FormControl fullWidth margin="dense">
+          <InputLabel>Category</InputLabel>
+          <Select
+            name="category"
+            value={formData.category}
+            onChange={handleChange}
+          >
+            <MenuItem value="Fruits">Fruits</MenuItem>
+            <MenuItem value="Vegetables">Vegetables</MenuItem>
+            <MenuItem value="Dairy">Dairy</MenuItem>
+            <MenuItem value="Grains">Grains</MenuItem>
+          </Select>
+        </FormControl>
         <Button
           variant="contained"
           component="label"

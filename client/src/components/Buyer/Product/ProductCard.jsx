@@ -4,11 +4,11 @@ import { Card, CardContent, CardMedia, Typography, Button, Box, Link, Tooltip } 
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 
-
 export default function ProductCard({ product }) {
     const navigate = useNavigate();
-    const { name, description, price, stock, farmer, image, id } = product;
+    const { name, description = "No description available", price, stock, farmer = "Unknown", image, id } = product;
 
+    // Ensure image.data is a valid Base64 string
     const imageUrl = image?.data
         ? `data:${image.contentType};base64,${image.data}`
         : "/placeholder.jpg";
@@ -17,14 +17,22 @@ export default function ProductCard({ product }) {
 
     const toggleDescription = (e) => {
         e.stopPropagation(); // prevent card click
-        setShowFullDesc(prev => !prev);
+        setShowFullDesc((prev) => !prev);
     };
 
-    const stockStatus = stock > 5 ? 'In Stock' : stock > 0 ? 'Only a few left!' : 'Out of Stock';
+    const stockStatus = stock > 10 ? 'In Stock' : stock > 0 ? 'Only a few left!' : 'Out of Stock';
 
     return (
         <Card
-            sx={{ maxWidth: 300, m: 2, cursor: 'pointer' }}
+            sx={{
+                maxWidth: 300,
+                minHeight: 400, // Ensure consistent height for all cards
+                m: 2,
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+            }}
             onClick={() => navigate(`/product/${id}`, { state: { product } })}
         >
             <CardMedia
@@ -33,27 +41,32 @@ export default function ProductCard({ product }) {
                 image={imageUrl}
                 alt={name}
             />
-            <CardContent>
-                <Typography variant="h6" gutterBottom>{name}</Typography>
-                <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{
-                        minHeight: 48, // Reserve space for at least 2 lines
-                        maxHeight: showFullDesc ? 'none' : 48,
-                        display: '-webkit-box',
-                        WebkitLineClamp: showFullDesc ? 'unset' : 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        transition: 'max-height 0.3s ease',
-                    }}
-                >
-                    {description}
-                </Typography>
-
-
-                <Box mt={1}>
+            <CardContent
+                sx={{
+                    flexGrow: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                }}
+            >
+                <Box>
+                    <Typography variant="h6" gutterBottom>{name}</Typography>
+                    <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                            minHeight: 48, // Reserve space for at least 2 lines
+                            maxHeight: showFullDesc ? 'none' : 48,
+                            display: '-webkit-box',
+                            WebkitLineClamp: showFullDesc ? 'unset' : 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            transition: 'max-height 0.3s ease',
+                        }}
+                    >
+                        {description}
+                    </Typography>
                     {description.length > 100 && (
                         <Link
                             component="button"
@@ -65,7 +78,6 @@ export default function ProductCard({ product }) {
                         </Link>
                     )}
                 </Box>
-
 
                 <Box mt={1}>
                     <Typography variant="subtitle2">Price: ₹{price}/kg</Typography>

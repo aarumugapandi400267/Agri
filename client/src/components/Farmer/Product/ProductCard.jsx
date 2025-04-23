@@ -17,10 +17,10 @@ const ProductCard = ({ product }) => {
           {product.description}
         </Typography>
         <Typography variant="h6" color="primary">
-          ${product.price}
+          ${product.price} /kg
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Stock: {product.stock}
+          Stock: {product.stock} in kgs.
         </Typography>
         <Button variant="contained" color="secondary" sx={{ mt: 1 }}>
           Edit

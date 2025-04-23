@@ -13,7 +13,11 @@ import {
   TextField,
   Box,
   Snackbar,
-  Alert
+  Alert,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from "@mui/material";
 import { getProductsById, updateProductById, createProduct } from "../../../actions/products";
 
@@ -28,6 +32,7 @@ const ProductList = ({ dispatch }) => {
     price: "",
     stock: "",
     image: null,
+    category: "",
   });
 
   // Snackbar state
@@ -80,6 +85,7 @@ const ProductList = ({ dispatch }) => {
       price: "",
       stock: "",
       image: null,
+      category: "",
     });
   };
 
@@ -129,6 +135,7 @@ const ProductList = ({ dispatch }) => {
     formData.append("description", newProduct.description);
     formData.append("price", newProduct.price);
     formData.append("stock", newProduct.stock);
+    formData.append("category", newProduct.category); // Add category to formData
     if (newProduct.image) {
       formData.append("image", newProduct.image);
     }
@@ -136,7 +143,7 @@ const ProductList = ({ dispatch }) => {
     try {
       const result = await dispatch(createProduct(formData));
       if (!result.error) {
-        await fetchProducts(); 
+        await fetchProducts();
         setProducts([...products, result]);
         showSnackbar("Product added successfully!", "success");
       } else {
@@ -186,16 +193,17 @@ const ProductList = ({ dispatch }) => {
                 <CardContent>
                   <Typography variant="h6">{product.name}</Typography>
                   <Typography variant="body2">{product.description}</Typography>
-                  <Typography variant="body1">Price: ₹{product.price}</Typography>
-                  <Typography variant="body1">Stock: {product.stock}</Typography>
+                  <Typography variant="body1">Price: ₹{product.price} /kg</Typography>
+                  <Typography variant="body1">Stock: {product.stock} in kgs.</Typography>
                   <Button onClick={() => handleOpen(product)}>Edit</Button>
                 </CardContent>
               </Card>
             </Grid>
           ))
-        ) : (
-          <Typography>No products available</Typography>
-        )}
+        ) : products.length == 0 ? (
+          <Typography>Loading</Typography>
+
+        ) : <Typography>No products available</Typography>}
       </Grid>
 
       {/* Edit Product Dialog */}
@@ -217,6 +225,8 @@ const ProductList = ({ dispatch }) => {
               value={selectedProduct.description}
               onChange={handleChange}
               fullWidth
+              multiline
+              rows={3}
               margin="dense"
             />
             <TextField
@@ -237,6 +247,19 @@ const ProductList = ({ dispatch }) => {
               fullWidth
               margin="dense"
             />
+            <FormControl fullWidth margin="dense">
+              <InputLabel>Category</InputLabel>
+              <Select
+                name="category"
+                value={selectedProduct.category}
+                onChange={handleChange}
+              >
+                <MenuItem value="Fruits">Fruits</MenuItem>
+                <MenuItem value="Vegetables">Vegetables</MenuItem>
+                <MenuItem value="Dairy">Dairy</MenuItem>
+                <MenuItem value="Grains">Grains</MenuItem>
+              </Select>
+            </FormControl>
           </DialogContent>
           <DialogActions>
             <Button onClick={handleClose}>Cancel</Button>
@@ -283,6 +306,19 @@ const ProductList = ({ dispatch }) => {
             fullWidth
             margin="dense"
           />
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Category</InputLabel>
+            <Select
+              name="category"
+              value={newProduct.category}
+              onChange={handleNewProductChange}
+            >
+              <MenuItem value="Fruits">Fruits</MenuItem>
+              <MenuItem value="Vegetables">Vegetables</MenuItem>
+              <MenuItem value="Dairy">Dairy</MenuItem>
+              <MenuItem value="Grains">Grains</MenuItem>
+            </Select>
+          </FormControl>
           <Button
             variant="contained"
             component="label"

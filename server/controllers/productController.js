@@ -2,13 +2,14 @@ import Product from "../models/Product.js"
 
 export const createProduct = async (req, res) => {
     try {
-        const { name, description, price, stock } = req.body;
+        const { name, description, price, stock, category } = req.body;
         const product = new Product({
             name,
             description,
             price,
             stock,
             farmer: req.user.id,
+            category:category
         });
 
         if (req.file) {

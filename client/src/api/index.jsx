@@ -25,8 +25,6 @@ export const getProducts = async () => {
 
 export const updateProductById = async(id, updatedProduct) =>{
     try {
-        console.log(id)
-        console.log(updatedProduct)
         return await API.put(`/products/${id}`, updatedProduct); // Send updated product data
 
     } catch (error) {
