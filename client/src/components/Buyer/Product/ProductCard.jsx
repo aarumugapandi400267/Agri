@@ -90,7 +90,7 @@ export default function ProductCard({ product }) {
                     <Typography variant="subtitle2">Farmer: {farmer}</Typography>
                 </Box>
 
-                <Box mt={2} textAlign="center">
+                {/* <Box mt={2} textAlign="center">
                     <Tooltip title="Buy Now">
                         <Button variant="contained" color="primary" sx={{ mr: 1 }}>
                             <ShoppingBagIcon />
@@ -102,7 +102,7 @@ export default function ProductCard({ product }) {
                             <ShoppingCartIcon />
                         </Button>
                     </Tooltip>
-                </Box>
+                </Box> */}
             </CardContent>
         </Card>
     );

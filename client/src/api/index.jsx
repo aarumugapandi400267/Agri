@@ -42,11 +42,4 @@ export const createProduct=async(product)=>{
     }
 }
 
-export const getProductsForCustomer=async () => {
-    try {
-        return await API.get("/products/fetch")
-    } catch (error) {
-        console.error("Error fetching products:", error.response?.data || error.message);
-        throw error; 
-    }
-}
+

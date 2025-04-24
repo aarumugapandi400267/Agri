@@ -37,6 +37,7 @@ export const addItemToCart = async (req, res) => {
 export const removeItemFromCart = async (req, res) => {
     try {
         const { productId } = req.body;
+        console.log(productId._id)
         const userId = req.user._id;
 
         const cart = await Cart.findOne({ userId });
@@ -46,11 +47,11 @@ export const removeItemFromCart = async (req, res) => {
         }
 
         // Remove the item from the cart
-        cart.items = cart.items.filter(item => item.productId.toString() !== productId);
+        cart.items = cart.items.filter(item => item.productId.toString() !== productId._id);
 
         cart.updatedAt = Date.now();
         await cart.save();
-
+        console.log("Ok")
         res.status(200).json({ success: true, cart });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });

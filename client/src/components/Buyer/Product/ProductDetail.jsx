@@ -7,8 +7,13 @@ import {
   Card,
   CardMedia,
   CircularProgress,
-  Divider
+  Divider,
+  Button,
+  TextField,
+  Tooltip
 } from '@mui/material';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import axios from 'axios';
 
 export default function ProductDetail() {
@@ -16,6 +21,7 @@ export default function ProductDetail() {
   const location = useLocation();
   const [product, setProduct] = useState(location.state?.product || null);
   const [loading, setLoading] = useState(!product);
+  const [quantity, setQuantity] = useState(1); // Quantity state
 
   useEffect(() => {
     if (!product) {
@@ -30,6 +36,21 @@ export default function ProductDetail() {
         });
     }
   }, [id, product]);
+
+  const handleQuantityChange = (e) => {
+    const value = Math.max(1, Math.min(product?.stock || 1, parseInt(e.target.value) || 1)); // Ensure quantity is between 1 and stock
+    setQuantity(value);
+  };
+
+  const addToCart = () => {
+    console.log(`Adding product ${id} with quantity ${quantity} to cart.`);
+    // Add logic to update the cart
+  };
+
+  const orderNow = () => {
+    console.log(`Ordering product ${id} with quantity ${quantity}.`);
+    // Add logic to place the order
+  };
 
   if (loading) {
     return (
@@ -57,6 +78,7 @@ export default function ProductDetail() {
         position: 'relative',
         minHeight: '100vh',
         overflow: 'hidden',
+        alignItems: 'center',
         '&::before': {
           content: '""',
           position: 'absolute',
@@ -82,7 +104,8 @@ export default function ProductDetail() {
             backgroundColor: 'rgba(255, 255, 255, 0.85)',
             backdropFilter: 'blur(4px)',
             borderRadius: 3,
-            boxShadow: 4
+            boxShadow: 4,
+            alignItems: 'center',
           }}
         >
           <CardMedia
@@ -119,6 +142,44 @@ export default function ProductDetail() {
             <Typography variant="body2" sx={{ mt: 1 }}>
               Vendor: {farmer}
             </Typography>
+
+            <Box mt={3} textAlign="center">
+              <TextField
+                type="number"
+                value={quantity}
+                onChange={handleQuantityChange}
+                label="Quantity"
+                size="small"
+                variant="outlined"
+                inputProps={{
+                  min: 1,
+                  max: stock,
+                }}
+                sx={{ width: '80px', mr: 2 }}
+              />
+              <Tooltip title="Add to Cart">
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={addToCart}
+                  disabled={stock <= 0}
+                >
+                  <ShoppingCartIcon />
+                </Button>
+              </Tooltip>
+
+              <Tooltip title="Order Now">
+                <Button
+                  variant="contained"
+                  color="success"
+                  onClick={orderNow}
+                  disabled={stock <= 0}
+                  sx={{ ml: 2 }}
+                >
+                  <ShoppingBagIcon />
+                </Button>
+              </Tooltip>
+            </Box>
           </Box>
         </Card>
       </Container>

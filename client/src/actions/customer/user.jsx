@@ -1,5 +1,5 @@
-import * as API from "../../api"
-import { GETPRODUCTSFORCUSTOMERS } from "../../constants/actionTypes"
+import * as API from "../../api/cartAPI"
+import { GETPRODUCTSFORCUSTOMERS,DELETECARTITEM } from "../../constants/actionTypes"
 
 export const fetchProducts=()=>async (dispatch) => {
     try {
@@ -13,5 +13,20 @@ export const fetchProducts=()=>async (dispatch) => {
     } catch (error) {
         console.error("Product fetch failed:", error.response?.data || error.message);
         return { error: error.response?.data || error.message };
+    }
+}
+
+export const deleteCartItem=(id)=>async (dispatch) => {
+    try {
+        const {data} =await API.deleteCartItem(id)
+
+        dispatch({
+            type:DELETECARTITEM,
+            payload:data
+        })
+
+        return data
+    } catch (error) {
+        
     }
 }
