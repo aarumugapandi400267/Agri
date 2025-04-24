@@ -1,112 +1,103 @@
-import React, { useEffect, useState } from "react";
-import { Typography, Box, Button, Grid, Card, CardContent, CardMedia } from "@mui/material";
-import { fetchCartFromDB, saveCartToDB } from "../../../api/cartAPI"; // Import API utility
+import React, { useEffect, useState } from 'react';
+import { Box, Typography, Button, IconButton } from '@mui/material';
+import { getCart } from '../../../actions/customer/cart'; // Assuming these actions exist
+import { useDispatch } from 'react-redux';
 
-export default function CartPage() {
+export default function Cart() {
+  const dispatch = useDispatch();
   const [cart, setCart] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  // Merge cart from localStorage and database
-  const mergeCarts = (localCart, dbCart) => {
-    const mergedCart = [...dbCart];
-
-    localCart.forEach((localItem) => {
-      const existingItem = mergedCart.find((dbItem) => dbItem.productId === localItem.productId);
-
-      if (existingItem) {
-        // Update quantity if the item exists in both carts
-        existingItem.quantity += localItem.quantity;
-      } else {
-        // Add the item if it doesn't exist in the database cart
-        mergedCart.push(localItem);
+  useEffect(() => {
+    const fetchCart = async () => {
+      try {
+        const response = await dispatch(getCart());
+        setCart(response.items || []); // Ensure response.items is valid
+      } catch (error) {
+        console.error('Failed to fetch cart:', error);
       }
-    });
+    };
+    fetchCart();
+  }, [dispatch]);
 
-    return mergedCart;
-  };
-
-  // Fetch and merge carts
-  const syncCart = async () => {
+  const handleDelete = async (id) => {
     try {
-      setLoading(true);
-
-      // Fetch cart from the database
-      const dbCart = await fetchCartFromDB();
-
-      // Get cart from localStorage
-      const localCart = JSON.parse(localStorage.getItem("cart")) || [];
-
-      // Merge the carts
-      const mergedCart = mergeCarts(localCart, dbCart);
-
-      // Save the merged cart to the database
-      await saveCartToDB(mergedCart);
-
-      // Update the state and localStorage
-      setCart(mergedCart);
-      localStorage.setItem("cart", JSON.stringify(mergedCart));
+      // await dispatch(deleteCartItem(id)); // Assuming deleteCartItem is an action
+      setCart(cart.filter((item) => item._id !== id)); // Remove the item from the state
     } catch (error) {
-      console.error("Error syncing cart:", error);
-    } finally {
-      setLoading(false);
+      console.error('Failed to delete item:', error);
     }
   };
 
-  useEffect(() => {
-    syncCart();
-  }, []);
+  const handleUpdate = async (id, quantity) => {
+    try {
+      // const updatedItem = await dispatch(updateCartItem(id, { quantity })); // Assuming updateCartItem is an action
+      setCart(cart.map((item) => (item._id === id ? { ...item, quantity: updatedItem.quantity } : item))); // Update the state
+    } catch (error) {
+      console.error('Failed to update item:', error);
+    }
+  };
 
-  const handleRemoveItem = async (productId) => {
-    const updatedCart = cart.filter((item) => item.productId !== productId);
-    setCart(updatedCart);
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
-    await saveCartToDB(updatedCart);
+  const handleQuantityChange = (id, change) => {
+    const item = cart.find((item) => item._id === id);
+    if (item) {
+      const newQuantity = item.quantity + change;
+      if (newQuantity > 0) {
+        handleUpdate(id, newQuantity);
+      }
+    }
   };
 
   return (
-    <Box mt={4}>
-      <Typography variant="h5" textAlign="center">
-        Your Cart
-      </Typography>
-      {loading ? (
-        <Typography textAlign="center" mt={2}>
-          Loading...
-        </Typography>
-      ) : cart.length === 0 ? (
-        <Typography textAlign="center" mt={2}>
-          Your cart is empty.
-        </Typography>
-      ) : (
-        <Grid container spacing={2} mt={2}>
-          {cart.map((item) => (
-            <Grid item xs={12} sm={6} md={4} key={item.productId}>
-              <Card>
-                {item.image && (
-                  <CardMedia
-                    component="img"
-                    height="150"
-                    image={item.image}
-                    alt={item.name}
-                  />
-                )}
-                <CardContent>
-                  <Typography variant="h6">{item.name}</Typography>
-                  <Typography variant="body2">Price: ₹{item.price}</Typography>
-                  <Typography variant="body2">Quantity: {item.quantity}</Typography>
+    <>
+      <Box mt={4}>
+        <Typography variant="h5" textAlign="center">Your Cart</Typography>
+        <Box mt={2}>
+          {cart.length > 0 ? (
+            cart.map((item) => (
+              <Box key={item._id} p={2} border="1px solid #ccc" borderRadius="8px" mb={2}>
+                <Typography variant="h6">{item.productId.name}</Typography>
+                <Typography>Description: {item.productId.description}</Typography>
+                <Typography>Quantity: {item.quantity}</Typography>
+                <Box display="flex" alignItems="center" mt={1}>
                   <Button
                     variant="contained"
-                    color="secondary"
-                    onClick={() => handleRemoveItem(item.productId)}
-                    sx={{ mt: 1 }}
+                    color="primary"
+                    onClick={() => handleQuantityChange(item._id, 1)}
                   >
-                    Remove
+                    +
                   </Button>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-      )}
-    </Box>
+                  <Typography mx={2}>{item.quantity}</Typography>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => handleQuantityChange(item._id, -1)}
+                  >
+                    -
+                  </Button>
+                </Box>
+                <Box display="flex" justifyContent="space-between" mt={2}>
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    onClick={() => handleDelete(item._id)}
+                  >
+                    Delete
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="success"
+                    onClick={() => handleUpdate(item._id, item.quantity)}
+                  >
+                    Update
+                  </Button>
+                </Box>
+              </Box>
+            ))
+          ) : (
+            <Typography textAlign="center">Your cart is empty.</Typography>
+          )}
+        </Box>
+      </Box>
+    </>
   );
 }
