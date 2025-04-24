@@ -8,6 +8,7 @@ import LandingPage from './components/Buyer/Landing/LandingPage'
 import ProductDetail from './components/Buyer/Product/ProductDetail'
 import Razorpay from './components/Buyer/Payment/PaymentPage'
 import AccountVerification from './components/Buyer/Payment/BankAccountValidation'
+import AdminDashboard from './components/Admin/AdminDashboard'
 function App() {
 
   return (
@@ -22,7 +23,7 @@ function App() {
 
         <Route path='/payment' element={<Razorpay/>}></Route>
         <Route path='/account-verification' element={<AccountVerification/>}></Route>
-
+<Route path='/admindash' element={<AdminDashboard/>}></Route>
       </Routes>
     </>
   )
