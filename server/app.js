@@ -10,7 +10,7 @@ import reviewRoutes from "./routes/reviewRoutes.js"
 import cartRoutes from "./routes/customer/cart.js"
 import errorHandler from './middlewares/errorMiddleware.js'
 import cors from "cors"
-
+import {order,verify,cancel,verifyAccount} from "./controllers/Payment.js"
 dotenv.config()
 connectDB() 
 
@@ -32,7 +32,10 @@ app.use("/api/products", productRoutes)
 app.use("/api/orders", orderRoutes)
 app.use("/api/reviews", reviewRoutes)
 app.use("/api/cart", cartRoutes)
-
+app.post("/api/payment/order", order);    // This must be present
+app.post("/api/payment/verify", verify);
+app.post("/api/payment/cancel", cancel); // This must be present
+app.post("/api/account/verify", verifyAccount); // This must be present
 app.use(errorHandler)
 
 const PORT = process.env.PORT

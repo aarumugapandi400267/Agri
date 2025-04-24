@@ -1,5 +1,5 @@
 import React from "react";
-import RazorpayButton from "./RazorpayButton";
+import RazorpayButton from "./RazorpayButton"; // adjust path if needed
 
 import { Box } from "@mui/material";
 const PaymentPage = () => {
