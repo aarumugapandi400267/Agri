@@ -17,9 +17,14 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
+  IconButton,
+  Tooltip
 } from "@mui/material";
 import { getProductsById, updateProductById, createProduct } from "../../../actions/products";
+import EditIcon from '@mui/icons-material/Edit';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const ProductList = ({ dispatch }) => {
   const [products, setProducts] = useState([]);
@@ -79,6 +84,10 @@ const ProductList = ({ dispatch }) => {
 
   const handleAddClose = () => {
     setAddOpen(false);
+    resetNewProductForm();
+  };
+
+  const resetNewProductForm = () => {
     setNewProduct({
       name: "",
       description: "",
@@ -111,14 +120,11 @@ const ProductList = ({ dispatch }) => {
       try {
         const result = await dispatch(updateProductById(selectedProduct._id, selectedProduct));
         if (result && !result.error) {
-          const updatedProducts = products.map((product) =>
+          setProducts(products.map((product) =>
             product._id === selectedProduct._id ? result : product
-          );
-          await fetchProducts();
-          setProducts(updatedProducts);
+          ));
           showSnackbar("Product updated successfully!", "success");
         } else {
-          console.error("Failed to update product:", result?.error || "Unknown error");
           showSnackbar("Failed to update product", "error");
         }
       } catch (error) {
@@ -135,7 +141,7 @@ const ProductList = ({ dispatch }) => {
     formData.append("description", newProduct.description);
     formData.append("price", newProduct.price);
     formData.append("stock", newProduct.stock);
-    formData.append("category", newProduct.category); // Add category to formData
+    formData.append("category", newProduct.category);
     if (newProduct.image) {
       formData.append("image", newProduct.image);
     }
@@ -143,11 +149,9 @@ const ProductList = ({ dispatch }) => {
     try {
       const result = await dispatch(createProduct(formData));
       if (!result.error) {
-        await fetchProducts();
         setProducts([...products, result]);
         showSnackbar("Product added successfully!", "success");
       } else {
-        console.error("Failed to add product:", result.error);
         showSnackbar("Failed to add product", "error");
       }
       handleAddClose();
@@ -157,53 +161,78 @@ const ProductList = ({ dispatch }) => {
     }
   };
 
+  const renderProductCard = (product, index) => (
+    <Grid item xs={12} sm={6} md={4} key={index}>
+      <Card
+        sx={{
+          border: "2px solid #ddd", // Added a border around the card
+          borderRadius: 2,
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease', // Added transition for border-color
+          "&:hover": {
+            transform: "scale(1.02)", // Slight zoom effect on hover
+            boxShadow: "0 12px 24px rgba(0, 0, 0, 0.2)", // Shadow on hover
+            borderColor: "#1976d2", // Blue border on hover
+          },
+        }}
+      >
+        <CardMedia
+          component="img"
+          height="180"
+          image={product.image && product.image.data
+            ? `data:${product.image.contentType};base64,${product.image.data}`
+            : "/placeholder.jpg"
+          }
+          alt={product.name}
+          sx={{ objectFit: 'cover', borderTopLeftRadius: 12, borderTopRightRadius: 12 }}
+        />
+        <CardContent sx={{ padding: 2, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', flexGrow: 1 }}>
+          <Typography variant="h6" fontWeight={600} gutterBottom noWrap>
+            {product.name}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ flexGrow: 1, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
+            {product.description}
+          </Typography>
+          <Typography variant="body1" sx={{ fontWeight: 'bold', marginTop: 2 }}>
+            ₹{product.price} /kg
+          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 2 }}>
+            <Typography variant="body2" color="text.secondary">Stock: {product.stock}</Typography>
+            <Box sx={{ display: "flex", justifyContent: "center" }}>
+              <Tooltip title="Edit Product">
+                <IconButton onClick={() => handleOpen(product)} color="primary">
+                  <EditIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Delete Product">
+                <IconButton color="error">
+                  <DeleteIcon />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          </Box>
+        </CardContent>
+      </Card>
+    </Grid>
+  );
+
   return (
     <>
       {/* Add Product Button */}
       <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
-        <Button variant="contained" color="primary" onClick={handleAddOpen}>
+        <Button variant="contained" color="primary" onClick={handleAddOpen} startIcon={<AddIcon />}>
           Add Product
         </Button>
       </Box>
 
       <Grid container spacing={2}>
         {products.length > 0 ? (
-          products.map((product, index) => (
-            <Grid item xs={12} sm={6} md={4} key={index}>
-              <Card>
-                {product.image && product.image.data ? (
-                  <CardMedia
-                    component="img"
-                    height="150"
-                    image={
-                      product.image && product.image.data
-                        ? `data:${product.image.contentType};base64,${product.image.data}`
-                        : "/placeholder.jpg"
-                    }
-                    alt={product.name}
-                  />
-                ) : (
-                  <CardMedia
-                    component="img"
-                    height="150"
-                    image="/placeholder.jpg"
-                    alt="No image available"
-                  />
-                )}
-                <CardContent>
-                  <Typography variant="h6">{product.name}</Typography>
-                  <Typography variant="body2">{product.description}</Typography>
-                  <Typography variant="body1">Price: ₹{product.price} /kg</Typography>
-                  <Typography variant="body1">Stock: {product.stock} in kgs.</Typography>
-                  <Button onClick={() => handleOpen(product)}>Edit</Button>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))
-        ) : products.length == 0 ? (
-          <Typography>Loading</Typography>
-
-        ) : <Typography>No products available</Typography>}
+          products.map(renderProductCard)
+        ) : (
+          <Typography>No products available</Typography>
+        )}
       </Grid>
 
       {/* Edit Product Dialog */}
@@ -335,20 +364,21 @@ const ProductList = ({ dispatch }) => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleAddClose}>Cancel</Button>
-          <Button onClick={handleAddProduct} color="primary" variant="contained">
-            Add
-          </Button>
+          <Button onClick={handleAddProduct}>Add</Button>
         </DialogActions>
       </Dialog>
 
       {/* Snackbar */}
       <Snackbar
         open={snackOpen}
-        autoHideDuration={3000}
+        autoHideDuration={6000}
         onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-        <Alert onClose={handleSnackbarClose} severity={snackSeverity} sx={{ width: "100%" }}>
+        <Alert
+          onClose={handleSnackbarClose}
+          severity={snackSeverity}
+          sx={{ width: "100%" }}
+        >
           {snackMessage}
         </Alert>
       </Snackbar>
