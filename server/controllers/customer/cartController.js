@@ -135,7 +135,7 @@ export const updateCartItemQuantity = async (req, res) => {
         }
 
         // Update the quantity
-        existingItem.quantity += quantityChange;
+        existingItem.quantity = quantityChange;
 
         // Remove the item if the quantity becomes zero or less
         if (existingItem.quantity <= 0) {
