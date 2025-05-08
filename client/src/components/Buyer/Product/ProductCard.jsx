@@ -16,10 +16,13 @@ import {
   DialogContent,
   DialogActions,
   Grow,
-  Divider
+  Divider,
+  IconButton
 } from '@mui/material';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
 import { addCartItem } from '../../../actions/customer/cart';
 import {useDispatch} from "react-redux"
 
@@ -47,6 +50,8 @@ export default function ProductCard({ product }) {
   const [showFullDesc, setShowFullDesc] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [showProductInfo, setShowProductInfo] = useState(false);
+  const [isBuyNowMode, setIsBuyNowMode] = useState(false);
+  const [quantity, setQuantity] = useState(1);
 
   const toggleDescription = (e) => {
     e.stopPropagation();
@@ -61,6 +66,14 @@ export default function ProductCard({ product }) {
 
   const handleAddToCart = (e) => {
     e.stopPropagation();
+    setIsBuyNowMode(false);
+    setOpenDialog(true);
+    setTimeout(() => setShowProductInfo(true), 2000);
+  };
+
+  const handleBuyNow = (e) => {
+    e.stopPropagation();
+    setIsBuyNowMode(true);
     setOpenDialog(true);
     dispatch(addCartItem(product.id,10))
     // Set a delay to show product info after the GIF
@@ -69,11 +82,21 @@ export default function ProductCard({ product }) {
 
   useEffect(() => {
     // Reset showProductInfo state when dialog is closed
-
     if (!openDialog) {
       setShowProductInfo(false);
+      setQuantity(1);
     }
   }, [openDialog]);
+
+  const totalAmount = quantity * price;
+
+  const increaseQty = () => {
+    if (quantity < stock) setQuantity(quantity + 1);
+  };
+
+  const decreaseQty = () => {
+    if (quantity > 1) setQuantity(quantity - 1);
+  };
 
   return (
     <>
@@ -108,13 +131,7 @@ export default function ProductCard({ product }) {
               borderTopRightRadius: 12,
             }}
           />
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 8,
-              right: 8,
-            }}
-          >
+          <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
             {getStockChip()}
           </Box>
         </Box>
@@ -165,7 +182,7 @@ export default function ProductCard({ product }) {
                 variant="contained"
                 color="primary"
                 size="small"
-                onClick={(e) => e.stopPropagation()}
+                onClick={handleBuyNow}
                 sx={{ borderRadius: 8 }}
               >
                 <ShoppingBagIcon />
@@ -202,64 +219,76 @@ export default function ProductCard({ product }) {
           },
         }}
       >
-        {/* 🎉 Background Celebration GIF */}
-        <Box
-          component="img"
-          src="https://cdn.dribbble.com/userupload/22050859/file/original-0bc2fa58763cee104c6c6092a3ae2d91.gif"
-          alt="confetti"
-          sx={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            opacity: 0.5,
-            zIndex: 0,
-          }}
-        />
-
-        {/* 🔲 Content on top */}
-        <DialogTitle sx={{ textAlign: 'center', zIndex: 1, position: 'relative' }}>
-          🎉 Product Added!
+        <DialogTitle sx={{ textAlign: 'center' }}>
+          {isBuyNowMode ? '🛒 Confirm Purchase' : '🎉 Product Added!'}
         </DialogTitle>
-        <Divider sx={{ zIndex: 1, position: 'relative' }} />
-        <DialogContent sx={{ textAlign: 'center', mt: 1, zIndex: 1, position: 'relative' }}>
-          {showProductInfo ? (
+        <Divider />
+
+        <DialogContent sx={{ textAlign: 'center', mt: 1 }}>
+          <img
+            src={imageUrl}
+            alt={name}
+            style={{
+              width: 100,
+              height: 100,
+              objectFit: 'cover',
+              borderRadius: 12,
+              marginBottom: 12,
+            }}
+          />
+          <Typography variant="h6">{name}</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            {isBuyNowMode ? 'Choose quantity and confirm' : 'was added to your cart!'}
+          </Typography>
+
+          {isBuyNowMode && (
             <>
-              <img
-                src={imageUrl}
-                alt={name}
-                style={{
-                  width: 100,
-                  height: 100,
-                  objectFit: 'cover',
-                  borderRadius: 12,
-                  marginBottom: 12,
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 2,
+                  mb: 2
                 }}
-              />
-              <Typography variant="h6">{name}</Typography>
-              <Typography variant="body2" color="text.secondary">
-                was added to your cart!
-              </Typography>
-              {/* Price and Stock Information */}
-              <Typography variant="subtitle1" fontWeight={500} sx={{ mt: 2 }}>
-                ₹{price}/kg
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Stock: {stock > 0 ? `${stock} left` : 'Out of Stock'}
+              >
+                <IconButton
+                  onClick={decreaseQty}
+                  disabled={quantity <= 1}
+                  color="primary"
+                >
+                  <RemoveIcon />
+                </IconButton>
+                <Typography variant="h6">{quantity} kg</Typography>
+                <IconButton
+                  onClick={increaseQty}
+                  disabled={quantity >= stock}
+                  color="primary"
+                >
+                  <AddIcon />
+                </IconButton>
+              </Box>
+
+              <Typography variant="subtitle1" fontWeight={600}>
+                Total: ₹{totalAmount}
               </Typography>
             </>
-          ) : (
-            <Typography variant="body2" color="text.secondary">
-              Please wait while we add the product to your cart...
-            </Typography>
           )}
         </DialogContent>
-        <DialogActions sx={{ justifyContent: 'center', mt: 2, zIndex: 1, position: 'relative' }}>
-          <Button variant="contained" onClick={() => setOpenDialog(false)}>
-            Continue Shopping
+
+        <DialogActions sx={{ justifyContent: 'center', mt: 2 }}>
+          <Button variant="outlined" onClick={() => setOpenDialog(false)}>
+            Cancel
           </Button>
+          {isBuyNowMode ? (
+            <Button variant="contained" color="success">
+              Pay ₹{totalAmount}
+            </Button>
+          ) : (
+            <Button variant="contained" onClick={() => setOpenDialog(false)}>
+              Continue Shopping
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
     </>
