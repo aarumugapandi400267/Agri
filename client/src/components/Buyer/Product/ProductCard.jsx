@@ -68,6 +68,8 @@ export default function ProductCard({ product }) {
     e.stopPropagation();
     setIsBuyNowMode(false);
     setOpenDialog(true);
+    dispatch(addCartItem(product.id,10))
+
     setTimeout(() => setShowProductInfo(true), 2000);
   };
 
@@ -75,7 +77,6 @@ export default function ProductCard({ product }) {
     e.stopPropagation();
     setIsBuyNowMode(true);
     setOpenDialog(true);
-    dispatch(addCartItem(product.id,10))
     // Set a delay to show product info after the GIF
     setTimeout(() => setShowProductInfo(true), 2000); // 2-second delay
   };
