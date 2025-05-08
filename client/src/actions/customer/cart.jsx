@@ -1,5 +1,5 @@
 import * as API from "../../api/cartAPI";
-import { GETCART, SAVECART, DELETECARTITEM, UPDATECART } from "../../constants/actionTypes";
+import { GETCART, SAVECART, DELETECARTITEM, UPDATECART, ADDITEMTOCART } from "../../constants/actionTypes";
 
 export const getCart = () => async (dispatch) => {
     try {
@@ -45,6 +45,21 @@ export const updateCartItem=(productId,quantity)=>async (dispatch) => {
         return data
     } catch (error) {
         console.error("Error Updating item:", error.response?.data || error.message);
+        return { error: error.response?.data || error.message };
+    }
+}
+
+export const addCartItem=(productId,quantity)=>async (dispatch) => {
+    try {
+        const {data}=await API.addCartItem(productId,quantity)
+
+        dispatch({
+            type:ADDITEMTOCART,
+            payload:data
+        })
+        return data
+    } catch (error) {
+        console.error("Error Adding item:", error.response?.data || error.message);
         return { error: error.response?.data || error.message };
     }
 }

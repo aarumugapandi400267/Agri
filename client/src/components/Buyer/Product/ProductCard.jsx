@@ -20,6 +20,8 @@ import {
 } from '@mui/material';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
+import { addCartItem } from '../../../actions/customer/cart';
+import {useDispatch} from "react-redux"
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Grow ref={ref} {...props} />;
@@ -27,6 +29,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 
 export default function ProductCard({ product }) {
   const navigate = useNavigate();
+  const dispatch=useDispatch()
   const {
     name,
     description = "No description available",
@@ -59,12 +62,14 @@ export default function ProductCard({ product }) {
   const handleAddToCart = (e) => {
     e.stopPropagation();
     setOpenDialog(true);
+    dispatch(addCartItem(product.id,10))
     // Set a delay to show product info after the GIF
     setTimeout(() => setShowProductInfo(true), 2000); // 2-second delay
   };
 
   useEffect(() => {
     // Reset showProductInfo state when dialog is closed
+
     if (!openDialog) {
       setShowProductInfo(false);
     }

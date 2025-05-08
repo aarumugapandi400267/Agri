@@ -81,11 +81,11 @@ export default function Cart() {
             <Typography textAlign="center">Loading cart...</Typography>
           ) : cart.length > 0 ? (
             <>
-              {cart.map((item) => {
+              {cart.map((item,idx) => {
                 const isEditing = editingItemId === item.productId; // Check if this item is being edited
 
                 return (
-                  <Box key={item.productId} p={2} border="1px solid #ccc" borderRadius="8px" mb={2}>
+                  <Box key={idx} p={2} border="1px solid #ccc" borderRadius="8px" mb={2}>
                     <Box display="flex" alignItems="center" gap={2}>
                       <Box flex={1}>
                         <Typography variant="h6">{item.productId.name}</Typography>

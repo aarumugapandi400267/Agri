@@ -10,9 +10,11 @@ export const getCart = async () => {
 	}
 }
 
-export const addCartItem = async (id) => {
+export const addCartItem = async (id,quantity) => {
 	try {
-		return await API.get("/cart/add")
+		return await API.post("/cart/add",{
+			productId:id,quantity
+		})
 	} catch (error) {
 		console.error("Error adding cart items:", error.response?.data || error.message);
 		throw error;
