@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import {
   Container,
   Typography,
@@ -15,6 +16,7 @@ import {
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import axios from 'axios';
+import { addCartItem } from '../../../actions/customer/cart';
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -22,6 +24,7 @@ export default function ProductDetail() {
   const [product, setProduct] = useState(location.state?.product || null);
   const [loading, setLoading] = useState(!product);
   const [quantity, setQuantity] = useState(1); // Quantity state
+  const dispatch=useDispatch()
 
   useEffect(() => {
     if (!product) {
@@ -42,12 +45,14 @@ export default function ProductDetail() {
     setQuantity(value);
   };
 
-  const addToCart = () => {
+  const addToCart = (e) => {
     console.log(`Adding product ${id} with quantity ${quantity} to cart.`);
     // Add logic to update the cart
+    e.stopPropagation();
+    dispatch(addCartItem(id, 10))
   };
 
-  const orderNow = () => {
+  const orderNow = (e) => {
     console.log(`Ordering product ${id} with quantity ${quantity}.`);
     // Add logic to place the order
   };

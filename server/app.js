@@ -8,9 +8,10 @@ import productRoutes from "./routes/productRoutes.js"
 import orderRoutes from "./routes/orderRoutes.js"
 import reviewRoutes from "./routes/reviewRoutes.js"
 import cartRoutes from "./routes/customer/cart.js"
+import paymentRoutes from "./routes/paymentRoutes.js"
 import errorHandler from './middlewares/errorMiddleware.js'
 import cors from "cors"
-import {order,verify,cancel,verifyAccount} from "./controllers/Payment.js"
+import {order,verify,cancel,verifyAccount} from "./controllers/paymentController.js"
 dotenv.config()
 connectDB() 
 
@@ -32,10 +33,8 @@ app.use("/api/products", productRoutes)
 app.use("/api/orders", orderRoutes)
 app.use("/api/reviews", reviewRoutes)
 app.use("/api/cart", cartRoutes)
-app.post("/api/payment/order", order);    // This must be present
-app.post("/api/payment/verify", verify);
-app.post("/api/payment/cancel", cancel); // This must be present
-app.post("/api/account/verify", verifyAccount); // This must be present
+app.use("/api/payment",paymentRoutes)
+
 app.use(errorHandler)
 
 const PORT = process.env.PORT

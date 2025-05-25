@@ -12,3 +12,4 @@ export const SAVECART = "SAVECART";
 export const DELETECARTITEM = "DELETE-CART-ITEM";
 export const UPDATECART="UPDATE-CART" 
 export const ADDITEMTOCART="ADD-ITEM-TO-CART"
+export const CLEARCART="CLEAR-CART"

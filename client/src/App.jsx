@@ -9,6 +9,7 @@ import ProductDetail from './components/Buyer/Product/ProductDetail'
 import Razorpay from './components/Buyer/Payment/PaymentPage'
 import AccountVerification from './components/Buyer/Payment/BankAccountValidation'
 import AdminDashboard from './components/Admin/AdminDashboard'
+import AddAccount from './components/Farmer/AddAccount/AddAccount'
 function App() {
 
   return (
@@ -20,6 +21,8 @@ function App() {
 
         <Route path='/home' element={<LandingPage/>}></Route>
         <Route path="/product/:id" element={<ProductDetail />} />
+
+        <Route path='/add-business-account' element={<AddAccount/>}/>
 
         <Route path='/payment' element={<Razorpay/>}></Route>
         <Route path='/account-verification' element={<AccountVerification/>}></Route>

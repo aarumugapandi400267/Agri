@@ -17,7 +17,7 @@ router.get('/', protect, getCart);
 router.delete('/remove',protect, removeItemFromCart);
 
 // Clear cart
-router.put('/clear', clearCart);
+router.put('/clear',protect, clearCart);
 
 // Save the cart
 router.post('/save', protect, saveCart); 

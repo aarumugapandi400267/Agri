@@ -51,3 +51,12 @@ export const updateCartItem = async (productId, quantityChange) => {
 		throw error;
 	}
 }
+
+export const clearCart=async () => {
+	try {
+		return await API.put("/cart/clear")
+	} catch (error) {
+		console.error("Error Clearing cart item:", error.response?.data || error.message);
+		throw error;
+	}
+}
