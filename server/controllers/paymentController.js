@@ -67,14 +67,27 @@ export const order = async (req, res) => {
       payment: payment._id,
       products:orderItems,
       razorpayOrderId: razorpayOrder.id,
+      shippingAddress: req.body.shippingAddress,
     });
     await orderDoc.save();
+
+    // --- Update product stock after order is placed (bulk update, no DML in loop) ---
+    const bulkOps = orderItems.map(item => ({
+      updateOne: {
+        filter: { _id: item.product },
+        update: { $inc: { stock: -item.quantity } }
+      }
+    }));
+    if (bulkOps.length > 0) {
+      await Product.bulkWrite(bulkOps);
+    }
+    // --- End update product stock ---
 
     res.status(200).json({
       razorpayOrderId: razorpayOrder.id,
       amount: totalAmount,
       key: process.env.RAZORPAY_KEY_ID,
-      orderItems:orderDoc.products,
+      orderItems: orderDoc.products,
       paymentId: payment._id,
       orderId: orderDoc._id,
     });
@@ -119,6 +132,18 @@ export const verify = async (req, res) => {
     { status: "Completed" },
     { new: true }
   );
+
+  // --- Update product quantity after payment ---
+  if (order && order.products && order.products.length > 0) {
+    for (const item of order.products) {
+      await Product.findByIdAndUpdate(
+        item.product,
+        { $inc: { quantity: -item.quantity } }, // Decrement quantity
+        { new: true }
+      );
+    }
+  }
+  // --- End update product quantity ---
 
   // --- Payout to Farmers: Add this block ---
   if (order && order.products && order.products.length > 0) {
@@ -360,5 +385,98 @@ export const verifyAccount = async (req, res) => {
       message: 'Error during account verification',
       error: error.message,
     });
+  }
+};
+
+// Get total earnings for the logged-in farmer
+export const getFarmerEarnings = async (req, res) => {
+  try {
+    const farmerId = req.user._id;
+
+    // Find all completed orders containing this farmer's products
+    const orders = await Order.find({
+      status: "Completed",
+      "products.farmer": farmerId,
+    });
+
+    // Sum up the subtotal for this farmer in each order
+    let totalEarnings = 0;
+    for (const order of orders) {
+      for (const item of order.products) {
+        if (item.farmer?.toString() === farmerId.toString()) {
+          totalEarnings += item.subtotal;
+        }
+      }
+    }
+
+    res.json({ totalEarnings });
+  } catch (error) {
+    console.error("Error fetching farmer earnings:", error);
+    res.status(500).json({ error: "Failed to fetch earnings" });
+  }
+};
+
+// Get orders for the logged-in customer
+export const getCustomerOrders = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const orders = await Order.find({ user: userId })
+      .populate("products.product")
+      .populate("products.farmer", "name")
+      .populate("payment")
+      .sort({ createdAt: -1 });
+    res.status(200).json({ orders });
+  } catch (error) {
+    console.error("Error fetching customer orders:", error);
+    res.status(500).json({ error: "Failed to fetch customer orders" });
+  }
+};
+
+// Get orders for the logged-in farmer
+export const getFarmerOrders = async (req, res) => {
+  try {
+    const farmerId = req.user._id.toString();
+
+    // Find orders where any product belongs to this farmer
+    const orders = await Order.find({ "products.farmer": farmerId })
+      .populate("products.product")
+      .populate("products.farmer", "name")
+      .populate("payment")
+      .populate("user", "name") // populate user name for frontend
+      .sort({ createdAt: -1 });
+
+    // Filter products in each order to only include those for this farmer
+    const filteredOrders = orders.map(order => {
+      const farmerProducts = order.products.filter(
+        item => item.farmer && item.farmer._id.toString() === farmerId
+      );
+      return {
+        ...order.toObject(),
+        products: farmerProducts,
+      };
+    });
+
+    res.status(200).json({ orders: filteredOrders });
+  } catch (error) {
+    console.error("Error fetching farmer orders:", error);
+    res.status(500).json({ error: "Failed to fetch farmer orders" });
+  }
+};
+
+// Get order by ID
+export const getOrderById = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const order = await Order.findById(orderId)
+      .populate("products.product")
+      .populate("products.farmer", "name")
+      .populate("payment");
+    if (!order) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+    res.status(200).json({ order });
+  } catch (error) {
+    console.error("Error fetching order by ID:", error);
+    res.status(500).json({ error: "Failed to fetch order" });
   }
 };

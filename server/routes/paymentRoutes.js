@@ -22,4 +22,16 @@ router.post("/account/create", protect, PaymentMethods.createAccount);
 // (Optional) Add a route to fetch payout status/history for admin/farmer
 // router.get("/payouts/:farmerId", protect, PaymentMethods.getPayouts);
 
+// Route to get farmer earnings
+router.get("/farmer/earnings", protect, PaymentMethods.getFarmerEarnings);
+
+// Get all orders for the logged-in customer
+router.get("/orders/customer", protect, PaymentMethods.getCustomerOrders);
+
+// Get all orders for the logged-in farmer
+router.get("/orders/farmer", protect, PaymentMethods.getFarmerOrders);
+
+// Get order details by order ID (for both customer and farmer, if authorized)
+router.get("/orders/:orderId", protect, PaymentMethods.getOrderById);
+
 export default router;

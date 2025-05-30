@@ -22,3 +22,41 @@ createRoot(document.getElementById("root")).render(
     </BrowserRouter>
   </StrictMode>
 );
+
+
+
+
+
+
+
+
+
+
+// import { StrictMode } from "react"
+// import { createRoot } from "react-dom/client"
+// import { createStore, compose, applyMiddleware } from "redux"
+// import { BrowserRouter } from "react-router-dom"
+// import { Provider } from "react-redux"
+// import { thunk } from "redux-thunk"
+// import "./index.css"
+// import App from "./App.jsx"
+// import reducers from "./reducers/index.jsx"
+
+// // Enable Redux DevTools if available
+// const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose
+
+// const store = createStore(reducers, composeEnhancers(applyMiddleware(thunk)))
+
+// const rootElement = document.getElementById("root")
+// if (rootElement) {
+//   createRoot(rootElement).render(
+//     <StrictMode>
+//       <BrowserRouter>
+//         <Provider store={store}>
+//           <App />
+//         </Provider>
+//       </BrowserRouter>
+//     </StrictMode>
+//   )
+// }
+

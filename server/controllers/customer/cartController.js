@@ -1,10 +1,17 @@
 import Cart from '../../models/Cart.js';
+import Product from '../../models/Product.js'; // Add this import
 
 // Add an item to the cart
 export const addItemToCart = async (req, res) => {
     try {
         const { productId, quantity, variant } = req.body;
         const userId = req.user._id;
+
+        // Check product stock before adding
+        const product = await Product.findById(productId);
+        if (!product) {
+            return res.status(404).json({ success: false, message: 'Product not found' });
+        }
 
         let cart = await Cart.findOne({ userId });
 
@@ -16,11 +23,37 @@ export const addItemToCart = async (req, res) => {
         // Check if the product already exists in the cart
         const existingItem = cart.items.find(item => item.productId.toString() === productId);
 
+        // Get the quantity already in the cart for this product
+        const prevQuantity = existingItem ? existingItem.quantity : 0;
+        const totalRequested = prevQuantity + quantity;
+
+        // Check if total requested exceeds available stock
+        if (totalRequested > product.stock) {
+            // Add as many as possible (up to stock limit)
+            const maxAddable = Math.max(product.stock - prevQuantity, 0);
+            if (maxAddable === 0) {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: `No more stock available. Already in cart: ${prevQuantity}` 
+                });
+            }
+            if (existingItem) {
+                existingItem.quantity = prevQuantity + maxAddable;
+            } else {
+                cart.items.push({ productId, quantity: maxAddable, variant });
+            }
+            cart.updatedAt = Date.now();
+            await cart.save();
+            return res.status(200).json({ 
+                success: true, 
+                cart, 
+                message: `Only ${maxAddable} items added to cart due to stock limit.` 
+            });
+        }
+
         if (existingItem) {
-            // Update the quantity if the product exists
-            existingItem.quantity += quantity;
+            existingItem.quantity = totalRequested;
         } else {
-            // Add a new item to the cart
             cart.items.push({ productId, quantity, variant });
         }
 

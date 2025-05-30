@@ -9,7 +9,8 @@ export const createProduct = async (req, res) => {
             price,
             stock,
             farmer: req.user.id,
-            category:category
+            category,
+            status: "pending" // <-- Always set to pending for admin approval
         });
 
         if (req.file) {
@@ -19,8 +20,11 @@ export const createProduct = async (req, res) => {
             };
         }
 
-        await product.save(); // Save the product to the database
-        res.status(201).json(product); // Respond with the created product
+        await product.save();
+        res.status(201).json({
+            message: "Product submitted for admin approval.",
+            product
+        });
     } catch (error) {
         res.status(500).json({
             message: "Server error",
@@ -30,7 +34,7 @@ export const createProduct = async (req, res) => {
 
 export const getProducts = async (req, res) => {
     try {
-      const products = await Product.find()
+      const products = await Product.find({ status: "approved" ,stock: { $gt: 0 } }) // Fetch only approved products with stock > 0
         .populate("farmer", "name")
         .lean(); // Important: convert Mongoose documents to plain JS objects
   

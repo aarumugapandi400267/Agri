@@ -10,8 +10,9 @@ import { useDispatch } from "react-redux";
 import ProductList from "../Product/ProductList";
 import Profile from "../Profile/Profile";
 import DashboardScreen from "./DashboardScreen";
+import OrdersScreen from "../Order/FarmerOrderList";
 
-const OrdersScreen = () => <Typography variant="h4">Orders Management</Typography>;
+// const OrdersScreen = () => <Typography variant="h4">Orders Management</Typography>;
 
 export default function FarmerDashboard() {
   const [isCollapsed, setIsCollapsed] = useState(true);

@@ -39,17 +39,7 @@ const orderSchema = new mongoose.Schema(
       ref: "Payment",
       required: true,
     },
-    shippingAddress: {
-      name: { type: String },
-      phone: { type: String },
-      addressLine1: { type: String },
-      addressLine2: { type: String },
-      city: { type: String },
-      state: { type: String },
-      postalCode: { type: String },
-      country: { type: String },
-      landmark: { type: String },
-    },
+    shippingAddress: { type: Object, required: true },
     deliveryInstructions: { type: String }, // Optional: special instructions from customer
     trackingNumber: { type: String }, // For shipment tracking
     estimatedDeliveryDate: { type: Date },

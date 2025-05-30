@@ -27,6 +27,13 @@ export const deleteCartItem=(id)=>async (dispatch) => {
 
         return data
     } catch (error) {
-        
+        console.error("Product delete failed:", error.response?.data || error.message);
+        return { error: error.response?.data || error.message };
     }
 }
+
+// actions/user.js
+export const addUserAddress = (address) => async (dispatch) => {
+  const res = await API.post('/user/address', address); // adjust endpoint
+  dispatch({ type: "UPDATE_USER", payload: res.data.user }); // update user in store
+};

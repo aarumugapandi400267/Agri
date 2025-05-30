@@ -43,3 +43,11 @@ export const createProduct=async(product)=>{
 }
 
 
+export const fetchOrders = async (role) => {
+    try {
+        return await API.get(`/payment/orders/${role}`);
+    } catch (error) {
+        console.error(`Error fetching ${role} orders:`, error.response?.data || error.message);
+        throw error;
+    }
+}

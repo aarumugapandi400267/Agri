@@ -165,16 +165,16 @@ const ProductList = ({ dispatch }) => {
     <Grid item xs={12} sm={6} md={4} key={index}>
       <Card
         sx={{
-          border: "2px solid #ddd", // Added a border around the card
+          border: "2px solid #ddd",
           borderRadius: 2,
           display: 'flex',
           flexDirection: 'column',
           height: '100%',
-          transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease', // Added transition for border-color
+          transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease',
           "&:hover": {
-            transform: "scale(1.02)", // Slight zoom effect on hover
-            boxShadow: "0 12px 24px rgba(0, 0, 0, 0.2)", // Shadow on hover
-            borderColor: "#1976d2", // Blue border on hover
+            transform: "scale(1.02)",
+            boxShadow: "0 12px 24px rgba(0, 0, 0, 0.2)",
+            borderColor: "#1976d2",
           },
         }}
       >
@@ -191,6 +191,23 @@ const ProductList = ({ dispatch }) => {
         <CardContent sx={{ padding: 2, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', flexGrow: 1 }}>
           <Typography variant="h6" fontWeight={600} gutterBottom noWrap>
             {product.name}
+          </Typography>
+          {/* Show product status */}
+          <Typography
+            variant="caption"
+            sx={{
+              color:
+                product.status === "approved"
+                  ? "green"
+                  : product.status === "pending"
+                  ? "orange"
+                  : "red",
+              fontWeight: 600,
+              mb: 1,
+              textTransform: "capitalize"
+            }}
+          >
+            Status: {product.status}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ flexGrow: 1, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
             {product.description}

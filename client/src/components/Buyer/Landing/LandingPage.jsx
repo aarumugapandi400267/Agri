@@ -32,7 +32,7 @@ export default function LandingPage() {
     dispatch(fetchProducts())
       .then(result => setProducts(result))
       .catch(error => console.log(error));
-  }, [dispatch]);
+  },[dispatch]);
 
   const filteredProducts = products.filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase())
