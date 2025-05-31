@@ -8,3 +8,12 @@ export const createOrder = async (orderData) => {
 		throw error;
 	}
 }
+
+export const getOrderById = async (orderId) => {
+	try {
+		return await API.get(`/orders/${orderId}`);
+	} catch (error) {
+		console.error("Error fetching order by ID:", error.response?.data || error.message);
+		throw error;
+	}
+}

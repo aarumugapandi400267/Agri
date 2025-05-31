@@ -10,7 +10,8 @@ export const login = (formData, navigate) => async (dispatch) => {
             type: AUTHENTICATION,
             payload: data,
         });
-        if (data.role == "Farmer") {
+        console.log(data._doc);
+        if (data._doc.role == "Farmer") {
             navigate('/dashboard')
         } else {
             navigate("/home")

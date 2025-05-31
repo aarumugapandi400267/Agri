@@ -11,11 +11,12 @@ import { placeOrder } from '../../../actions/customer/order';
 import { verifyPayment } from '../../../actions/customer/order'; // <-- You need to implement this action
 import { useDispatch, useSelector } from 'react-redux';
 import AddressSelector from './AddressSelector'; // adjust path if needed
-import { addUserAddress } from '../../../actions/customer/user'; // <-- Import the action
+import { addUserAddress, getUser } from '../../../actions/user'; // <-- Import the action
+// import { getUser } from '../../../actions/user';
 
 export default function Cart() {
   const dispatch = useDispatch();
-  const user = useSelector(state => state.authenticationReducer.AuthData._doc); // adjust to your store
+  const user = useSelector(state => state.authenticationReducer.AuthData); // adjust to your store
   console.log(user);
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -39,6 +40,7 @@ export default function Cart() {
   const fetchCart = async () => {
     setLoading(true); // Set loading to true before fetching
     try {
+      // await dispatch(getUser())
       const response = await dispatch(getCart());
       setCart(response.items || []); // Update cart with fetched items
     } catch (error) {
@@ -51,6 +53,7 @@ export default function Cart() {
   // Fetch the cart when the component mounts
   useEffect(() => {
     fetchCart();
+    dispatch(getUser());
   }, [dispatch]);
 
   // Handle delete operation

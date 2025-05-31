@@ -83,3 +83,23 @@ export const getFarmerOrders = async (req, res) => {
       res.status(500).json({ error: err.message });
     }
   };
+
+export const getOrderById = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id)
+      .populate('user')
+
+    if (!order) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+
+    // Check if the user is authorized to view this order
+    if (req.user.role === "Customer" && order.customer._id.toString() !== req.user.id) {
+      return res.status(403).json({ error: "You are not authorized to view this order" });
+    }
+
+    res.json(order);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}

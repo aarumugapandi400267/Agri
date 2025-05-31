@@ -51,3 +51,40 @@ export const updateUserProfile = async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 };
+
+// Add a new address to the user's addresses array
+export const addUserAddress = async (req, res) => {
+    try {
+        const { address } = req.body;
+        console.log(address);
+        if (
+            !address ||
+            !address.name ||
+            !address.phone ||
+            !address.addressLine1 ||
+            !address.city ||
+            !address.state ||
+            !address.postalCode
+        ) {
+            return res.status(400).json({ message: "Incomplete address details" });
+        }
+
+        // Add address to user's addresses array
+        const updatedUser = await User.findByIdAndUpdate(
+            req.user.id,
+            { $push: { addresses: address } },
+            { new: true, select: "-password" }
+        );
+
+        if (!updatedUser) return res.status(404).json({ message: "User not found" });
+
+        res.json({
+            ...updatedUser.toObject(),
+            profileImage: updatedUser.profileImage?.data
+                ? `data:${updatedUser.profileImage.contentType};base64,${updatedUser.profileImage.data.toString("base64")}`
+                : null,
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Server error" });
+    }
+};

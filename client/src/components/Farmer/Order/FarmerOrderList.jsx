@@ -15,11 +15,13 @@ import {
   IconButton,
   Tooltip,
   Popover,
+  Button,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useDispatch } from "react-redux";
 import { fetchOrders } from "../../../actions/user";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import { Link } from 'react-router-dom';
 
 const FarmerOrderList = () => {
   const [orders, setOrders] = useState([]);
@@ -155,6 +157,9 @@ const FarmerOrderList = () => {
                   <Typography variant="caption" color="text.secondary">
                     Date: {new Date(order.createdAt).toLocaleString()}
                   </Typography>
+                  <Link to={`/farmer/orders/${order._id}`}>
+                    <Button variant="outlined">View Details</Button>
+                  </Link>
                 </CardContent>
               </Card>
             </Grid>
@@ -187,6 +192,9 @@ const FarmerOrderList = () => {
                 <Typography variant="caption" color="text.secondary">
                   Date: {new Date(order.createdAt).toLocaleString()}
                 </Typography>
+                <Link to={`/farmer/orders/${order._id}`}>
+                  <Button variant="outlined">View Details</Button>
+                </Link>
               </CardContent>
             </Card>
           ))}

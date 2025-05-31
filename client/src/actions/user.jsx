@@ -1,5 +1,5 @@
 import * as API from "../api";
-import { GETUSER, UPDATEUSER } from "../constants/actionTypes";
+import { ADDUSERADDRESS, FETCHFARMERORDER, GETUSER, UPDATEUSER } from "../constants/actionTypes";
 
 export const updateUser = (formData) => async (dispatch) => {
   try {
@@ -44,7 +44,7 @@ export const fetchOrders = (role) => async (dispatch) => {
     const { data } = await API.fetchOrders(role);
 
     dispatch({
-      type: `FETCH_${role.toUpperCase()}_ORDERS`,
+      type: FETCHFARMERORDER,
       payload: data.orders,
     });
 
@@ -55,3 +55,18 @@ export const fetchOrders = (role) => async (dispatch) => {
   }
 };
 
+export const addUserAddress = (address) => async (dispatch) => {
+  try {
+    const { data } = await API.addUserAddress(address);
+
+    dispatch({
+      type: ADDUSERADDRESS,
+      payload: data,
+    });
+
+    return data;
+  } catch (error) {
+    console.error("Add address failed:", error.response?.data || error.message);
+    return { error: error.response?.data || error.message };
+  }
+}

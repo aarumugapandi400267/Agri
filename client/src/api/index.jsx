@@ -51,3 +51,12 @@ export const fetchOrders = async (role) => {
         throw error;
     }
 }
+
+export const addUserAddress = async (address) => {
+    try {
+        return await API.post("/users/address", {address});
+    } catch (error) {
+        console.error("Error adding user address:", error.response?.data || error.message);
+        throw error;
+    }
+};

@@ -1,10 +1,9 @@
-import React, { useState } from "react";
-import { Drawer, List, ListItem, ListItemIcon, ListItemText, IconButton, Box, Typography, AppBar, Toolbar } from "@mui/material";
+import React, { useRef, useEffect } from "react";
+import { Drawer, List, ListItem, ListItemIcon, ListItemText, IconButton, Box, Typography, AppBar, Toolbar, Avatar } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import ListAltIcon from "@mui/icons-material/ListAlt";
 import ChecklistRtlIcon from "@mui/icons-material/ChecklistRtl";
 import DashboardIcon from "@mui/icons-material/Dashboard";
-import { Avatar } from "@mui/material";
 import { useMediaQuery } from "@mui/material";
 import { useDispatch } from "react-redux";
 import ProductList from "../Product/ProductList";
@@ -12,24 +11,20 @@ import Profile from "../Profile/Profile";
 import DashboardScreen from "./DashboardScreen";
 import OrdersScreen from "../Order/FarmerOrderList";
 
-// const OrdersScreen = () => <Typography variant="h4">Orders Management</Typography>;
-
 export default function FarmerDashboard() {
-  const [isCollapsed, setIsCollapsed] = useState(true);
-  const [activeTab, setActiveTab] = useState("Dashboard");
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const isMobile = useMediaQuery("(max-width: 768px)"); // Detects mobile screen size
+  const [isCollapsed, setIsCollapsed] = React.useState(true);
+  const [mobileOpen, setMobileOpen] = React.useState(false);
+  const isMobile = useMediaQuery("(max-width: 768px)");
   const dispatch = useDispatch();
 
-  const toggleSidebar = () => setMobileOpen(!mobileOpen);
-
+  // NAVIGATION config
   const NAVIGATION = [
     {
       title: "Profile",
       icon: (
-        <Avatar src={JSON.parse(localStorage.getItem("profile"))?.image || ""}>
-          {!JSON.parse(localStorage.getItem("profile"))?.image &&
-            JSON.parse(localStorage.getItem("profile"))?.name.charAt(0)}
+        <Avatar src={JSON.parse(localStorage.getItem("profile"))?._doc?.image || ""}>
+          {!JSON.parse(localStorage.getItem("profile"))?._doc?.image &&
+            JSON.parse(localStorage.getItem("profile"))?._doc?.name?.charAt(0)}
         </Avatar>
       ),
       component: <Profile />,
@@ -38,10 +33,33 @@ export default function FarmerDashboard() {
     {
       title: "Products",
       icon: <ListAltIcon />,
-      component: <ProductList dispatch={dispatch} />, // Pass dispatch to ProductList
+      component: <ProductList dispatch={dispatch} />,
     },
     { title: "Orders", icon: <ChecklistRtlIcon />, component: <OrdersScreen /> },
   ];
+
+  // Use ref for activeTab, and force update with dummy state
+  const activeTabRef = useRef(localStorage.getItem("farmerActiveTab") || "Dashboard");
+  const [, forceUpdate] = React.useState(0);
+
+  // Function to change tab and persist in localStorage
+  const changeTab = (tabTitle) => {
+    localStorage.setItem("farmerActiveTab", tabTitle);
+    activeTabRef.current = tabTitle;
+    forceUpdate((n) => n + 1);
+  };
+
+  // On mount, sync with localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem("farmerActiveTab");
+    if (stored && stored !== activeTabRef.current) {
+      activeTabRef.current = stored;
+      forceUpdate((n) => n + 1);
+    }
+    // eslint-disable-next-line
+  }, []);
+
+  const toggleSidebar = () => setMobileOpen(!mobileOpen);
 
   return (
     <Box sx={{ display: "flex", height: "100vh" }}>
@@ -53,7 +71,7 @@ export default function FarmerDashboard() {
               <MenuIcon />
             </IconButton>
             <Typography variant="h6" sx={{ flexGrow: 1 }}>
-              {activeTab}
+              {activeTabRef.current}
             </Typography>
           </Toolbar>
         </AppBar>
@@ -90,11 +108,11 @@ export default function FarmerDashboard() {
               button
               key={item.title}
               onClick={() => {
-                setActiveTab(item.title);
+                changeTab(item.title);
                 if (isMobile) toggleSidebar();
               }}
               sx={{
-                bgcolor: activeTab === item.title ? "#34495e" : "transparent",
+                bgcolor: activeTabRef.current === item.title ? "#34495e" : "transparent",
                 marginBottom: "5px",
                 "&:hover": {
                   bgcolor: "#1f2b38",
@@ -119,7 +137,7 @@ export default function FarmerDashboard() {
           marginTop: isMobile ? "64px" : 0,
         }}
       >
-        {NAVIGATION.find((item) => item.title === activeTab)?.component}
+        {NAVIGATION.find((item) => item.title === activeTabRef.current)?.component}
       </Box>
     </Box>
   );

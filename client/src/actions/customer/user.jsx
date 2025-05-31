@@ -1,5 +1,5 @@
 import * as API from "../../api/cartAPI"
-import { GETPRODUCTSFORCUSTOMERS,DELETECARTITEM } from "../../constants/actionTypes"
+import { GETPRODUCTSFORCUSTOMERS,DELETECARTITEM, ADDUSERADDRESS } from "../../constants/actionTypes"
 
 export const fetchProducts=()=>async (dispatch) => {
     try {
@@ -34,6 +34,12 @@ export const deleteCartItem=(id)=>async (dispatch) => {
 
 // actions/user.js
 export const addUserAddress = (address) => async (dispatch) => {
-  const res = await API.post('/user/address', address); // adjust endpoint
-  dispatch({ type: "UPDATE_USER", payload: res.data.user }); // update user in store
+    try {
+        const { data } = await API.addUserAddress(address);
+        dispatch({ type: ADDUSERADDRESS, payload: data });
+        return data;
+    } catch (error) {
+        console.error("Add address failed:", error.response?.data || error.message);
+        return { error: error.response?.data || error.message };
+    }
 };

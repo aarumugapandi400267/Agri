@@ -37,10 +37,7 @@ export const registerUser = async (req, res) => {
 
         if (user) {
             res.status(201).json({
-                _id: user._id,
-                name: user.name,
-                email: user.name,
-                role,
+                ...user.toObject(),
                 token: generateToken(user._id)
             })
         } else {
@@ -70,6 +67,7 @@ export const loginUser = async (req, res) => {
             password: undefined, // Exclude password from response
             token: generateToken(user._id)
         })
+        
     } catch (error) {
         res.status(500).json({
             message: "Server error"

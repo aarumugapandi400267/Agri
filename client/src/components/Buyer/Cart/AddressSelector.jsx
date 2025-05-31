@@ -27,8 +27,11 @@ const AddressSelector = ({
   const handleClose = () => setOpen(false);
 
   const handleAdd = async () => {
-    if (Object.values(newAddress).every(val => val && val.trim() !== "")) {
-      await onAddAddress(newAddress); // Await parent update
+    // Only check required fields
+    const requiredFields = ["name", "phone", "addressLine1", "city", "state", "postalCode"];
+    const allFilled = requiredFields.every(field => newAddress[field] && newAddress[field].trim() !== "");
+    if (allFilled) {
+      await onAddAddress(newAddress);
       setNewAddress({
         name: "",
         phone: "",
@@ -41,7 +44,7 @@ const AddressSelector = ({
       });
       handleClose();
     } else {
-      alert("Please fill all fields.");
+      alert("Please fill all required fields.");
     }
   };
 
