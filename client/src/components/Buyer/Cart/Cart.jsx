@@ -1,28 +1,43 @@
-/* eslint-disable no-unused-vars */
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   Box, Typography, Button, Divider, TextField, CircularProgress,
-  Card, CardContent, CardActions, Grid, Collapse, IconButton
+  Card, CardContent, Grid, IconButton, Avatar, Badge, Chip,
+  Tooltip, Paper, useTheme, Dialog, DialogTitle, DialogContent,
+  DialogActions, Stepper, Step, StepLabel
 } from '@mui/material';
-import AddLocationAltIcon from '@mui/icons-material/AddLocationAlt';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import { getCart, deleteCartItem, updateCartItem, clearCart } from '../../../actions/customer/cart';
-import { placeOrder } from '../../../actions/customer/order';
-import { verifyPayment } from '../../../actions/customer/order'; // <-- You need to implement this action
+import {
+  AddLocationAlt as AddLocationAltIcon,
+  CheckCircle as CheckCircleIcon,
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+  ShoppingCart as ShoppingCartIcon,
+  Home as HomeIcon,
+  Work as WorkIcon,
+  LocationOn as LocationIcon,
+  ArrowBack as ArrowBackIcon,
+  LocalShipping as ShippingIcon,
+  Payment as PaymentIcon
+} from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
-import AddressSelector from './AddressSelector'; // adjust path if needed
-import { addUserAddress, getUser } from '../../../actions/user'; // <-- Import the action
-// import { getUser } from '../../../actions/user';
+import { motion } from 'framer-motion';
+import { getCart, deleteCartItem, updateCartItem, clearCart } from '../../../actions/customer/cart';
+import { placeOrder, verifyPayment } from '../../../actions/customer/order';
+import { addUserAddress, getUser } from '../../../actions/user';
+
+const steps = ['Cart', 'Shipping', 'Payment'];
 
 export default function Cart() {
+  const theme = useTheme();
   const dispatch = useDispatch();
-  const user = useSelector(state => state.authenticationReducer.AuthData); // adjust to your store
-  console.log(user);
+  const user = useSelector(state => state.authenticationReducer.AuthData);
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editingItemId, setEditingItemId] = useState(null);
   const [editedQuantity, setEditedQuantity] = useState(0);
-  const [showNewAddress, setShowNewAddress] = useState(false);
+  const [selectedAddressIndex, setSelectedAddressIndex] = useState(user?.defaultAddressIndex || 0);
+  const [addresses, setAddresses] = useState(user?.addresses || []);
+  const [activeStep, setActiveStep] = useState(0);
+  const [newAddressDialogOpen, setNewAddressDialogOpen] = useState(false);
   const [newAddress, setNewAddress] = useState({
     name: "",
     phone: "",
@@ -31,97 +46,83 @@ export default function Cart() {
     city: "",
     state: "",
     postalCode: "",
-    country: "India"
+    country: "India",
+    type: "home"
   });
-  const [selectedAddressIndex, setSelectedAddressIndex] = useState(user?.defaultAddressIndex || 0);
-  const [addresses, setAddresses] = useState(user?.addresses || []);
 
-  // Function to fetch the cart
   const fetchCart = async () => {
-    setLoading(true); // Set loading to true before fetching
+    setLoading(true);
     try {
-      // await dispatch(getUser())
       const response = await dispatch(getCart());
-      setCart(response.items || []); // Update cart with fetched items
+      setCart(response.items || []);
     } catch (error) {
       console.error('Failed to fetch cart:', error);
     } finally {
-      setLoading(false); // Set loading to false after fetching
+      setLoading(false);
     }
   };
 
-  // Fetch the cart when the component mounts
   useEffect(() => {
     fetchCart();
     dispatch(getUser());
   }, [dispatch]);
 
-  // Handle delete operation
   const handleDelete = async (id) => {
     try {
-      await dispatch(deleteCartItem(id)); // Assuming deleteCartItem is an action
-      // fetchCart(); // Refetch the cart after deletion
+      await dispatch(deleteCartItem(id));
+      fetchCart();
     } catch (error) {
       console.error('Failed to delete item:', error);
     }
   };
 
-  // Handle update operation
   const handleUpdate = async (id, quantity) => {
     try {
-      // Assuming updateCartItem is an action
       await dispatch(updateCartItem(id, quantity));
-      fetchCart(); // Refetch the cart after update
-      setEditingItemId(null); // Exit edit mode
+      fetchCart();
+      setEditingItemId(null);
     } catch (error) {
       console.error('Failed to update item:', error);
     }
   };
 
-  // Handle edit button click
   const handleEditClick = (id, currentQuantity) => {
-    setEditingItemId(id); // Set the item to edit mode
-    setEditedQuantity(currentQuantity); // Set the current quantity as the initial value
+    setEditingItemId(id);
+    setEditedQuantity(currentQuantity);
   };
 
-  // Handle quantity change in the text field
   const handleQuantityChange = (e) => {
-    const value = Math.max(1, parseInt(e.target.value) || 1); // Ensure quantity is at least 1
+    const value = Math.max(1, parseInt(e.target.value) || 1);
     setEditedQuantity(value);
   };
 
-  // Handle order button click
+  const handleNextStep = () => {
+    if (activeStep === 0 && (!user?.addresses || user.addresses.length === 0)) {
+      setNewAddressDialogOpen(true);
+      return;
+    }
+    setActiveStep((prevActiveStep) => prevActiveStep + 1);
+  };
+
+  const handleBackStep = () => {
+    setActiveStep((prevActiveStep) => prevActiveStep - 1);
+  };
+
   const handleOrder = async () => {
     setLoading(true);
     try {
-      let shippingAddress;
-      if (showNewAddress) {
-        shippingAddress = newAddress;
-        // Optionally, save new address to user profile here
-      } else {
-        // Add a check here
-        if (!user || !user.addresses || user.addresses.length === 0) {
-          alert("Please add or select a shipping address.");
-          setLoading(false);
-          return;
-        }
-        shippingAddress = user.addresses[selectedAddressIndex];
-      }
-
-      // Prepare order data as expected by your backend
+      const shippingAddress = user.addresses[selectedAddressIndex];
       const orderData = {
         products: cart.map(item => ({
           product: item.productId._id,
           quantity: item.quantity,
           variant: item.variant,
         })),
-        shippingAddress, // <-- include address here
+        shippingAddress,
       };
 
-      // Call backend to create order and get payment info
       const response = await dispatch(placeOrder(orderData));
 
-      // Option B: Open Razorpay Checkout directly
       if (response.razorpayOrderId && response.key) {
         const options = {
           key: response.key,
@@ -131,7 +132,6 @@ export default function Cart() {
           name: "Agri Marketplace",
           description: "Order Payment",
           handler: async function (paymentResponse) {
-            // Call backend to verify payment
             try {
               setLoading(true);
               await dispatch(verifyPayment({
@@ -142,6 +142,7 @@ export default function Cart() {
               alert("Payment successful!");
               await dispatch(clearCart());
               fetchCart();
+              setActiveStep(0);
             } catch (err) {
               alert("Payment verification failed. Please contact support.");
             } finally {
@@ -152,7 +153,7 @@ export default function Cart() {
             name: response.user?.name,
             email: response.user?.email,
           },
-          theme: { color: "#3399cc" },
+          theme: { color: theme.palette.primary.main },
           modal: {
             ondismiss: function () {
               setLoading(false);
@@ -166,6 +167,7 @@ export default function Cart() {
         alert("Order placed successfully!");
         await dispatch(clearCart());
         fetchCart();
+        setActiveStep(0);
       }
     } catch (error) {
       console.error("Order placement failed:", error);
@@ -175,227 +177,594 @@ export default function Cart() {
     }
   };
 
-  // Calculate subtotal and total
   const calculateSubtotal = (item) => item.quantity * item.productId.price;
   const calculateTotal = () => cart.reduce((total, item) => total + calculateSubtotal(item), 0);
 
-  // Address selection UI
-  const renderAddresses = () => (
-    <Box mb={2}>
-      <Typography variant="h6" mb={1}>Shipping Address</Typography>
-      <Grid container spacing={2}>
-        {user?.addresses?.map((addr, idx) => (
-          <Grid item xs={12} md={6} key={idx}>
-            <Card
-              variant={selectedAddressIndex === idx && !showNewAddress ? "outlined" : "elevation"}
-              sx={{
-                borderColor: selectedAddressIndex === idx && !showNewAddress ? "primary.main" : "grey.300",
-                boxShadow: selectedAddressIndex === idx && !showNewAddress ? 2 : 0,
-                position: "relative"
-              }}
-              onClick={() => {
-                setSelectedAddressIndex(idx);
-                setShowNewAddress(false);
-              }}
-            >
-              <CardContent>
-                <Box display="flex" alignItems="center" gap={1}>
-                  {selectedAddressIndex === idx && !showNewAddress && (
-                    <CheckCircleIcon color="primary" fontSize="small" />
-                  )}
-                  <Typography fontWeight={600}>{addr.name}</Typography>
-                  <Typography variant="body2" color="text.secondary">({addr.phone})</Typography>
-                </Box>
-                <Typography variant="body2">
-                  {addr.addressLine1}, {addr.addressLine2 && addr.addressLine2 + ", "}
-                  {addr.city}, {addr.state}, {addr.postalCode}, {addr.country}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-        <Grid item xs={12} md={6}>
-          <Card
-            variant={showNewAddress ? "outlined" : "elevation"}
-            sx={{
-              borderColor: showNewAddress ? "primary.main" : "grey.300",
-              boxShadow: showNewAddress ? 2 : 0,
-              cursor: "pointer",
-              minHeight: 120,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center"
-            }}
-            onClick={() => setShowNewAddress(true)}
-          >
-            <CardContent sx={{ textAlign: "center" }}>
-              <AddLocationAltIcon color="primary" />
-              <Typography>Add New Address</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-      <Collapse in={showNewAddress}>
-        <Box mt={2} display="flex" flexDirection="column" gap={1}>
-          <TextField label="Name" size="small" value={newAddress.name} onChange={e => setNewAddress({ ...newAddress, name: e.target.value })} />
-          <TextField label="Phone" size="small" value={newAddress.phone} onChange={e => setNewAddress({ ...newAddress, phone: e.target.value })} />
-          <TextField label="Address Line 1" size="small" value={newAddress.addressLine1} onChange={e => setNewAddress({ ...newAddress, addressLine1: e.target.value })} />
-          <TextField label="Address Line 2" size="small" value={newAddress.addressLine2} onChange={e => setNewAddress({ ...newAddress, addressLine2: e.target.value })} />
-          <TextField label="City" size="small" value={newAddress.city} onChange={e => setNewAddress({ ...newAddress, city: e.target.value })} />
-          <TextField label="State" size="small" value={newAddress.state} onChange={e => setNewAddress({ ...newAddress, state: e.target.value })} />
-          <TextField label="Postal Code" size="small" value={newAddress.postalCode} onChange={e => setNewAddress({ ...newAddress, postalCode: e.target.value })} />
-          <TextField label="Country" size="small" value={newAddress.country} onChange={e => setNewAddress({ ...newAddress, country: e.target.value })} />
-          <Box display="flex" gap={1} mt={1}>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => {
-                setShowNewAddress(false);
-                setSelectedAddressIndex(-1); // Use new address
-              }}
-            >
-              Use this address
-            </Button>
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={() => setShowNewAddress(false)}
-            >
-              Cancel
-            </Button>
-          </Box>
-        </Box>
-      </Collapse>
-    </Box>
-  );
-
-  const cartItems = useMemo(() => cart.map((item, idx) => {
-    const isEditing = editingItemId === item.productId;
-    return (
-      <Box key={idx} p={2} border="1px solid #ccc" borderRadius="8px" mb={2}>
-        <Box display="flex" alignItems="center" gap={2}>
-          <Box flex={1}>
-            <Typography variant="h6">{item.productId.name}</Typography>
-            <Typography>Description: {item.productId.description}</Typography>
-            <Typography>Unit Price: ₹{item.productId.price}</Typography>
-            <Typography>Subtotal: ₹{calculateSubtotal(item)}</Typography>
-          </Box>
-        </Box>
-        <Box display="flex" alignItems="center" mt={1}>
-          {isEditing ? (
-            <>
-              <TextField
-                type="number"
-                value={editedQuantity}
-                onChange={handleQuantityChange}
-                size="small"
-                sx={{ width: '80px', mr: 2 }}
-              />
-              <Button
-                variant="contained"
-                color="success"
-                onClick={() => handleUpdate(item.productId._id, editedQuantity)}
-              >
-                Update
-              </Button>
-            </>
-          ) : (
-            <>
-              <Typography mx={2}>Quantity: {item.quantity}</Typography>
-              <Button
-                variant="outlined"
-                color="primary"
-                onClick={() => handleEditClick(item.productId, item.quantity)}
-              >
-                Edit
-              </Button>
-            </>
-          )}
-        </Box>
-        <Box display="flex" justifyContent="space-between" mt={2}>
-          <Button
-            variant="outlined"
-            color="secondary"
-            onClick={() => handleDelete(item.productId)}
-          >
-            Delete
-          </Button>
-        </Box>
-      </Box>
-    );
-  }), [cart, editingItemId, editedQuantity]);
-
-  const total = useMemo(() => calculateTotal(), [cart]);
-
-  const canOrder = useMemo(() => {
-    if (cart.length === 0 || loading) return false;
-    if (showNewAddress) {
-      return Object.values(newAddress).every(val => val && val.trim() !== "");
-    }
-    return user && user.addresses && user.addresses.length > 0;
-  }, [cart, loading, showNewAddress, newAddress, user]);
-
-  // Memoize address rendering
-  const memoizedAddresses = useMemo(() => renderAddresses(), [
-    user, selectedAddressIndex, showNewAddress, newAddress
-  ]);
-
   const handleSelectAddress = (idx) => setSelectedAddressIndex(idx);
 
-  const handleAddAddress = async (address) => {
-    // Optionally show loading state here
+  const handleAddNewAddress = async () => {
     try {
-      // Call backend to save address and update user in Redux
-      await dispatch(addUserAddress(address));
-      // After Redux updates, addresses will be refreshed from user state
-      // Optionally, setSelectedAddressIndex to the new address
-      setSelectedAddressIndex(addresses.length); // select the new address
-      setShowNewAddress(false);
+      await dispatch(addUserAddress(newAddress));
+      setNewAddressDialogOpen(false);
+      setNewAddress({
+        name: "",
+        phone: "",
+        addressLine1: "",
+        addressLine2: "",
+        city: "",
+        state: "",
+        postalCode: "",
+        country: "India",
+        type: "home"
+      });
+      await dispatch(getUser()); // Refresh user data
     } catch (error) {
       alert("Failed to add address. Please try again.");
     }
   };
 
-  return (
-    <>
-      <Box mt={4}>
-        <Typography variant="h5" textAlign="center">Your Cart</Typography>
-        <Box mt={2}>
-          {loading ? (
-            <Box textAlign="center"><CircularProgress /></Box>
-          ) : cart.length > 0 ? (
-            <>
-              {cartItems}
-              <Divider sx={{ my: 2 }} />
-              <Typography variant="h6" textAlign="right">
-                Total: ₹{total}
+  const getAddressIcon = (type) => {
+    switch (type) {
+      case "home": return <HomeIcon color="primary" />;
+      case "work": return <WorkIcon color="secondary" />;
+      default: return <LocationIcon color="action" />;
+    }
+  };
+
+  const cartItems = useMemo(() => cart.map((item) => {
+    const isEditing = editingItemId === item.productId._id;
+    return (
+      <motion.div
+        key={item.productId._id}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <Card
+          sx={{
+            mb: 2,
+            borderRadius: 3,
+            boxShadow: theme.shadows[1],
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              boxShadow: theme.shadows[4],
+              transform: 'translateY(-2px)'
+            }
+          }}
+        >
+          <CardContent>
+            <Grid container spacing={2} alignItems="center">
+              <Grid item xs={12} sm={3} md={2}>
+                <Avatar
+                  variant="rounded"
+                  src={item.productId.images?.[0]}
+                  sx={{ width: 80, height: 80, bgcolor: theme.palette.grey[200] }}
+                >
+                  <ShoppingCartIcon />
+                </Avatar>
+              </Grid>
+              <Grid item xs={12} sm={9} md={10}>
+                <Box display="flex" justifyContent="space-between">
+                  <Box>
+                    <Typography variant="h6" fontWeight={600}>
+                      {item.productId.name}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {item.productId.description.substring(0, 100)}...
+                    </Typography>
+                    <Box mt={1}>
+                      <Chip
+                        label={`₹${item.productId.price}`}
+                        size="small"
+                        sx={{ mr: 1 }}
+                        color="primary"
+                      />
+                      {item.variant && (
+                        <Chip
+                          label={item.variant}
+                          size="small"
+                          variant="outlined"
+                        />
+                      )}
+                    </Box>
+                  </Box>
+                  <Box>
+                    <Typography variant="h6" color="primary">
+                      ₹{calculateSubtotal(item)}
+                    </Typography>
+                  </Box>
+                </Box>
+
+                <Box display="flex" alignItems="center" mt={2}>
+                  {isEditing ? (
+                    <>
+                      <TextField
+                        type="number"
+                        value={editedQuantity}
+                        onChange={handleQuantityChange}
+                        size="small"
+                        sx={{ width: '80px', mr: 2 }}
+                        inputProps={{ min: 1 }}
+                      />
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        size="small"
+                        onClick={() => handleUpdate(item.productId._id, editedQuantity)}
+                        sx={{ mr: 1 }}
+                      >
+                        Update
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => setEditingItemId(null)}
+                      >
+                        Cancel
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Typography variant="body1" sx={{ mr: 2 }}>
+                        Qty: <strong>{item.quantity}</strong>
+                      </Typography>
+                      <Tooltip title="Edit quantity">
+                        <IconButton
+                          color="primary"
+                          onClick={() => handleEditClick(item.productId._id, item.quantity)}
+                          sx={{ mr: 1 }}
+                        >
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </>
+                  )}
+                  <Tooltip title="Remove item">
+                    <IconButton
+                      color="error"
+                      onClick={() => handleDelete(item.productId._id)}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }), [cart, editingItemId, editedQuantity, theme]);
+
+  const total = useMemo(() => calculateTotal(), [cart]);
+
+  const canProceed = useMemo(() => {
+    if (activeStep === 0) return cart.length > 0;
+    if (activeStep === 1) return user?.addresses?.length > 0;
+    return true;
+  }, [activeStep, cart, user]);
+
+  const renderStepContent = (step) => {
+    switch (step) {
+      case 0:
+        return (
+          <Paper elevation={0} sx={{ p: 3, borderRadius: 3 }}>
+            <Typography variant="h6" mb={3} fontWeight={600}>
+              {cart.length} {cart.length === 1 ? 'Item' : 'Items'} in Cart
+            </Typography>
+            {cartItems}
+          </Paper>
+        );
+      case 1:
+        return (
+          <Paper elevation={0} sx={{ p: 3, borderRadius: 3 }}>
+            <Box display="flex" alignItems="center" mb={3}>
+              <ShippingIcon color="primary" sx={{ mr: 2 }} />
+              <Typography variant="h6" fontWeight={600}>
+                Select Shipping Address
               </Typography>
-            </>
-          ) : (
-            <Typography textAlign="center">Your cart is empty.</Typography>
-          )}
+            </Box>
+            
+            {user?.addresses?.length > 0 ? (
+              <Grid container spacing={2}>
+                {user.addresses.map((addr, idx) => (
+                  <Grid item xs={12} md={6} key={idx}>
+                    <Card
+                      onClick={() => handleSelectAddress(idx)}
+                      sx={{
+                        border: selectedAddressIndex === idx ? `2px solid ${theme.palette.primary.main}` : '1px solid #e0e0e0',
+                        borderRadius: 2,
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          borderColor: theme.palette.primary.main,
+                          boxShadow: theme.shadows[2]
+                        },
+                        position: 'relative',
+                        overflow: 'visible'
+                      }}
+                    >
+                      {selectedAddressIndex === idx && (
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: -10,
+                            right: -10,
+                            backgroundColor: theme.palette.primary.main,
+                            borderRadius: '50%',
+                            padding: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          <CheckCircleIcon sx={{ color: 'white', fontSize: 20 }} />
+                        </Box>
+                      )}
+                      <CardContent>
+                        <Box display="flex" alignItems="center" gap={2} mb={1}>
+                          <Avatar sx={{ bgcolor: theme.palette.grey[100] }}>
+                            {getAddressIcon(addr.type || 'other')}
+                          </Avatar>
+                          <Box>
+                            <Typography fontWeight={600}>{addr.name}</Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {addr.phone}
+                            </Typography>
+                          </Box>
+                        </Box>
+                        <Divider sx={{ my: 1 }} />
+                        <Typography variant="body2" paragraph>
+                          {addr.addressLine1}
+                          {addr.addressLine2 && `, ${addr.addressLine2}`}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {addr.city}, {addr.state} - {addr.postalCode}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {addr.country}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+                <Grid item xs={12} md={6}>
+                  <Card
+                    onClick={() => setNewAddressDialogOpen(true)}
+                    sx={{
+                      border: '2px dashed #e0e0e0',
+                      borderRadius: 2,
+                      height: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        borderColor: theme.palette.primary.main,
+                        backgroundColor: theme.palette.action.hover
+                      }
+                    }}
+                  >
+                    <CardContent sx={{ textAlign: 'center', py: 4 }}>
+                      <AddLocationAltIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
+                      <Typography variant="subtitle1" color="primary">
+                        Add New Address
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              </Grid>
+            ) : (
+              <Box textAlign="center" py={4}>
+                <AddLocationAltIcon sx={{ fontSize: 60, color: 'text.disabled', mb: 2 }} />
+                <Typography variant="h6" gutterBottom>
+                  No Address Added
+                </Typography>
+                <Typography color="text.secondary" mb={3}>
+                  Please add a shipping address to continue
+                </Typography>
+                <Button
+                  variant="contained"
+                  onClick={() => setNewAddressDialogOpen(true)}
+                  startIcon={<AddLocationAltIcon />}
+                >
+                  Add New Address
+                </Button>
+              </Box>
+            )}
+          </Paper>
+        );
+      case 2:
+        return (
+          <Paper elevation={0} sx={{ p: 3, borderRadius: 3 }}>
+            <Box display="flex" alignItems="center" mb={3}>
+              <PaymentIcon color="primary" sx={{ mr: 2 }} />
+              <Typography variant="h6" fontWeight={600}>
+                Payment Information
+              </Typography>
+            </Box>
+            
+            <Box mb={4}>
+              <Typography variant="subtitle1" mb={2}>
+                Order Summary
+              </Typography>
+              
+              <Box sx={{ backgroundColor: theme.palette.grey[50], p: 3, borderRadius: 2 }}>
+                {cart.map((item, idx) => (
+                  <Box key={idx} display="flex" justifyContent="space-between" mb={1}>
+                    <Typography>
+                      {item.productId.name} × {item.quantity}
+                    </Typography>
+                    <Typography>₹{calculateSubtotal(item)}</Typography>
+                  </Box>
+                ))}
+                
+                <Divider sx={{ my: 2 }} />
+                
+                <Box display="flex" justifyContent="space-between">
+                  <Typography fontWeight={600}>Subtotal:</Typography>
+                  <Typography fontWeight={600}>₹{total}</Typography>
+                </Box>
+                <Box display="flex" justifyContent="space-between">
+                  <Typography>Shipping:</Typography>
+                  <Typography color="success.main">FREE</Typography>
+                </Box>
+                
+                <Divider sx={{ my: 2 }} />
+                
+                <Box display="flex" justifyContent="space-between">
+                  <Typography variant="h6">Total:</Typography>
+                  <Typography variant="h6" fontWeight={700}>
+                    ₹{total}
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+            
+            <Box mb={4}>
+              <Typography variant="subtitle1" mb={2}>
+                Shipping Address
+              </Typography>
+              {user?.addresses?.[selectedAddressIndex] && (
+                <Card sx={{ p: 2, backgroundColor: theme.palette.grey[50] }}>
+                  <Typography fontWeight={600}>
+                    {user.addresses[selectedAddressIndex].name}
+                  </Typography>
+                  <Typography variant="body2">
+                    {user.addresses[selectedAddressIndex].addressLine1}
+                    {user.addresses[selectedAddressIndex].addressLine2 && `, ${user.addresses[selectedAddressIndex].addressLine2}`}
+                  </Typography>
+                  <Typography variant="body2">
+                    {user.addresses[selectedAddressIndex].city}, {user.addresses[selectedAddressIndex].state} - {user.addresses[selectedAddressIndex].postalCode}
+                  </Typography>
+                  <Typography variant="body2">
+                    {user.addresses[selectedAddressIndex].country}
+                  </Typography>
+                  <Typography variant="body2" mt={1}>
+                    Phone: {user.addresses[selectedAddressIndex].phone}
+                  </Typography>
+                </Card>
+              )}
+            </Box>
+            
+            <Typography color="text.secondary" variant="body2">
+              By placing your order, you agree to our Terms of Service and Privacy Policy.
+            </Typography>
+          </Paper>
+        );
+      default:
+        return <div>Unknown step</div>;
+    }
+  };
+
+  return (
+    <Box sx={{ maxWidth: 1200, mx: 'auto', p: { xs: 2, md: 4 } }}>
+      <Box display="flex" alignItems="center" mb={4}>
+        <IconButton href="/products" sx={{ mr: 2 }}>
+          <ArrowBackIcon />
+        </IconButton>
+        <Typography variant="h4" fontWeight={700}>
+          Checkout
+        </Typography>
+        <Badge
+          badgeContent={cart.length}
+          color="primary"
+          sx={{ ml: 2 }}
+        >
+          <ShoppingCartIcon fontSize="large" />
+        </Badge>
+      </Box>
+
+      <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 4 }}>
+        {steps.map((label) => (
+          <Step key={label}>
+            <StepLabel>{label}</StepLabel>
+          </Step>
+        ))}
+      </Stepper>
+
+      {loading && cart.length === 0 ? (
+        <Box display="flex" justifyContent="center" my={8}>
+          <CircularProgress size={60} />
         </Box>
-        {/* Address selection UI */}
-        {user && (
-          <AddressSelector
-            addresses={addresses}
-            selectedIndex={selectedAddressIndex}
-            onSelect={handleSelectAddress}
-            onAddAddress={handleAddAddress}
-          />
-        )}
-        {/* Order Button */}
-        <Box mt={4} textAlign="center">
+      ) : cart.length > 0 ? (
+        <>
+          {renderStepContent(activeStep)}
+          
+          <Box display="flex" justifyContent="space-between" mt={4}>
+            <Button
+              variant="outlined"
+              onClick={handleBackStep}
+              disabled={activeStep === 0}
+              sx={{ borderRadius: 2, px: 4 }}
+            >
+              Back
+            </Button>
+            
+            {activeStep === steps.length - 1 ? (
+              <Button
+                variant="contained"
+                onClick={handleOrder}
+                disabled={!canProceed || loading}
+                sx={{ borderRadius: 2, px: 4 }}
+              >
+                {loading ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : (
+                  `Pay ₹${total}`
+                )}
+              </Button>
+            ) : (
+              <Button
+                variant="contained"
+                onClick={handleNextStep}
+                disabled={!canProceed}
+                sx={{ borderRadius: 2, px: 4 }}
+              >
+                Continue
+              </Button>
+            )}
+          </Box>
+        </>
+      ) : (
+        <Box textAlign="center" my={8}>
+          <ShoppingCartIcon sx={{ fontSize: 80, color: 'text.disabled', mb: 2 }} />
+          <Typography variant="h5" gutterBottom>
+            Your cart is empty
+          </Typography>
+          <Typography color="text.secondary" mb={3}>
+            Looks like you haven't added any items to your cart yet
+          </Typography>
           <Button
             variant="contained"
-            color="primary"
-            onClick={handleOrder}
-            disabled={!canOrder}
+            size="large"
+            href="/products"
+            sx={{ borderRadius: 2, px: 4 }}
           >
-            {loading ? <CircularProgress size={24} color="inherit" /> : "Proceed to Order"}
+            Continue Shopping
           </Button>
         </Box>
-      </Box>
-    </>
+      )}
+
+      {/* New Address Dialog */}
+      <Dialog open={newAddressDialogOpen} onClose={() => setNewAddressDialogOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle sx={{ borderBottom: `1px solid ${theme.palette.divider}`, py: 2 }}>
+          <Typography variant="h6" fontWeight={600}>Add New Address</Typography>
+        </DialogTitle>
+        <DialogContent sx={{ py: 3 }}>
+          <Box display="flex" gap={2} mb={3}>
+            {['home', 'work', 'other'].map((type) => (
+              <Button
+                key={type}
+                variant={newAddress.type === type ? 'contained' : 'outlined'}
+                startIcon={getAddressIcon(type)}
+                onClick={() => setNewAddress({ ...newAddress, type })}
+                sx={{
+                  textTransform: 'capitalize',
+                  flex: 1,
+                  borderRadius: 2,
+                  py: 1.5
+                }}
+              >
+                {type}
+              </Button>
+            ))}
+          </Box>
+
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={6}>
+              <TextField
+                label="Full Name"
+                fullWidth
+                size="small"
+                value={newAddress.name}
+                onChange={(e) => setNewAddress({ ...newAddress, name: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                label="Phone Number"
+                fullWidth
+                size="small"
+                value={newAddress.phone}
+                onChange={(e) => setNewAddress({ ...newAddress, phone: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Address Line 1"
+                fullWidth
+                size="small"
+                value={newAddress.addressLine1}
+                onChange={(e) => setNewAddress({ ...newAddress, addressLine1: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Address Line 2"
+                fullWidth
+                size="small"
+                value={newAddress.addressLine2}
+                onChange={(e) => setNewAddress({ ...newAddress, addressLine2: e.target.value })}
+                helperText="Apartment, suite, unit, building, floor, etc."
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                label="City"
+                fullWidth
+                size="small"
+                value={newAddress.city}
+                onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                label="State"
+                fullWidth
+                size="small"
+                value={newAddress.state}
+                onChange={(e) => setNewAddress({ ...newAddress, state: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                label="Postal Code"
+                fullWidth
+                size="small"
+                value={newAddress.postalCode}
+                onChange={(e) => setNewAddress({ ...newAddress, postalCode: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Country"
+                fullWidth
+                size="small"
+                value={newAddress.country}
+                onChange={(e) => setNewAddress({ ...newAddress, country: e.target.value })}
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions sx={{ borderTop: `1px solid ${theme.palette.divider}`, p: 2 }}>
+          <Button
+            onClick={() => setNewAddressDialogOpen(false)}
+            variant="outlined"
+            sx={{ borderRadius: 1, px: 3 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleAddNewAddress}
+            variant="contained"
+            sx={{ borderRadius: 1, px: 4 }}
+          >
+            Save Address
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 }

@@ -23,6 +23,7 @@
     "@reduxjs/toolkit": "^2.6.1",
     "@toolpad/core": "^0.13.0",
     "axios": "^1.8.3",
+    "client": "file:",
     "dotenv": "^16.4.7",
     "framer-motion": "^12.5.0",
     "jwt-decode": "^4.0.0",
