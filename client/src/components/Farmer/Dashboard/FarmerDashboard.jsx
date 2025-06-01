@@ -1,21 +1,36 @@
 import React, { useRef, useEffect } from "react";
-import { Drawer, List, ListItem, ListItemIcon, ListItemText, IconButton, Box, Typography, AppBar, Toolbar, Avatar } from "@mui/material";
+import { Drawer, List, ListItem, ListItemIcon, ListItemText, IconButton, Box, Typography, AppBar, Toolbar, Avatar, Grid, Card, CardContent } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import ListAltIcon from "@mui/icons-material/ListAlt";
 import ChecklistRtlIcon from "@mui/icons-material/ChecklistRtl";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import { useMediaQuery } from "@mui/material";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import ProductList from "../Product/ProductList";
 import Profile from "../Profile/Profile";
 import DashboardScreen from "./DashboardScreen";
 import OrdersScreen from "../Order/FarmerOrderList";
+import { fetchOrders } from "../../../actions/user"; // Adjust import based on your actions file
+import { getUser } from "../../../actions/user"; // Adjust import based on your actions file
 
+// Example: selector or fetch logic for orders
+// Replace with your actual Redux selector or fetching logic
+// Here, assuming orders are in state.ordersReducer.orders
 export default function FarmerDashboard() {
   const [isCollapsed, setIsCollapsed] = React.useState(true);
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const isMobile = useMediaQuery("(max-width: 768px)");
   const dispatch = useDispatch();
+
+  // Get orders from Redux (adjust selector as per your store)
+  const orders = useSelector(state => state.farmerReducer?.orders || []);
+
+  // Calculate statistics
+  const totalOrders = orders.length;
+  const totalRevenue = orders.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
+  const pendingOrders = orders.filter(o => o.status === "Pending").length;
+  const deliveredOrders = orders.filter(o => o.status === "Delivered").length;
+  const cancelledOrders = orders.filter(o => o.status === "Cancelled").length;
 
   // NAVIGATION config
   const NAVIGATION = [
@@ -29,7 +44,63 @@ export default function FarmerDashboard() {
       ),
       component: <Profile />,
     },
-    { title: "Dashboard", icon: <DashboardIcon />, component: <DashboardScreen /> },
+    {
+      title: "Dashboard",
+      icon: <DashboardIcon />,
+      component: (
+        <Box>
+          <DashboardScreen />
+          {/* Statistics Cards */}
+          <Box sx={{ mt: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Order Statistics
+            </Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={6} md={3}>
+                <Card sx={{ bgcolor: "#f5f8fa" }}>
+                  <CardContent>
+                    <Typography variant="h4" color="primary" fontWeight={700}>{totalOrders}</Typography>
+                    <Typography color="text.secondary">Total Orders</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={6} md={3}>
+                <Card sx={{ bgcolor: "#f5f8fa" }}>
+                  <CardContent>
+                    <Typography variant="h4" color="primary" fontWeight={700}>₹{totalRevenue}</Typography>
+                    <Typography color="text.secondary">Total Revenue</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={6} md={3}>
+                <Card sx={{ bgcolor: "#fffde7" }}>
+                  <CardContent>
+                    <Typography variant="h4" color="warning.main" fontWeight={700}>{pendingOrders}</Typography>
+                    <Typography color="text.secondary">Pending Orders</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={6} md={3}>
+                <Card sx={{ bgcolor: "#e8f5e9" }}>
+                  <CardContent>
+                    <Typography variant="h4" color="success.main" fontWeight={700}>{deliveredOrders}</Typography>
+                    <Typography color="text.secondary">Delivered Orders</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={6} md={3}>
+                <Card sx={{ bgcolor: "#ffebee" }}>
+                  <CardContent>
+                    <Typography variant="h4" color="error.main" fontWeight={700}>{cancelledOrders}</Typography>
+                    <Typography color="text.secondary">Cancelled Orders</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+          </Box>
+        </Box>
+      ),
+    },
     {
       title: "Products",
       icon: <ListAltIcon />,
@@ -51,11 +122,14 @@ export default function FarmerDashboard() {
 
   // On mount, sync with localStorage
   useEffect(() => {
+    dispatch(fetchOrders("farmer"))
+    dispatch(getUser());
     const stored = localStorage.getItem("farmerActiveTab");
     if (stored && stored !== activeTabRef.current) {
       activeTabRef.current = stored;
       forceUpdate((n) => n + 1);
     }
+    
     // eslint-disable-next-line
   }, []);
 

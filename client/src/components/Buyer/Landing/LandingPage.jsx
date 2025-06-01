@@ -25,7 +25,11 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 export default function LandingPage() {
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState('');
-  const [navValue, setNavValue] = useState(0);
+  // Initialize navValue from localStorage, default to 0
+  const [navValue, setNavValue] = useState(() => {
+    const stored = localStorage.getItem('buyerActiveTab');
+    return stored !== null ? Number(stored) : 0;
+  });
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -33,6 +37,11 @@ export default function LandingPage() {
       .then(result => setProducts(result))
       .catch(error => console.log(error));
   },[dispatch]);
+
+  // Save navValue to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('buyerActiveTab', navValue);
+  }, [navValue]);
 
   const filteredProducts = products.filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase())

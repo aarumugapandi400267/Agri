@@ -1,9 +1,12 @@
-import { SAVECART, GETCART, GETPRODUCTSFORCUSTOMERS, DELETECARTITEM, ADDITEMTOCART, CLEARCART } from "../constants/actionTypes";
+import { SAVECART, GETCART, GETPRODUCTSFORCUSTOMERS, DELETECARTITEM,FETCHCUSTOMERORDER,GETORDERBYID, ADDITEMTOCART, CLEARCART } from "../constants/actionTypes";
 
 const initialState = {};
 
 const customerReducer = (state = initialState, action) => {
     switch (action.type) {
+        case FETCHCUSTOMERORDER:
+        case GETORDERBYID:
+            return { ...state, orders: action.payload };
         case GETPRODUCTSFORCUSTOMERS:
             return { ...state, fetchedProducts: action.payload };
         case ADDITEMTOCART:

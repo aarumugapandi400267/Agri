@@ -197,26 +197,63 @@ export const verify = async (req, res) => {
 
 
 // ==========================
-// 🔹 Cancel Payment
+// 🔹 Cancel Payment (Customer requests cancellation)
 // ==========================
 export const cancel = async (req, res) => {
   try {
-    const { orderId } = req.body;
+    const { orderId, reason } = req.body;
+
+    // Optionally, you can store the cancel reason in the order
+    const update = { status: "CancelRequested" };
+    if (reason) update.cancelReason = reason;
 
     const updatedOrder = await Order.findOneAndUpdate(
-      { razorpayOrderId: orderId },
-      { status: "cancelled" },
+      { _id: orderId, status: { $nin: ["Cancelled", "Delivered"] } }, // Don't allow if already cancelled/delivered
+      update,
       { new: true }
     );
 
     if (!updatedOrder) {
-      return res.status(404).json({ success: false, message: "Order not found" });
+      return res.status(404).json({ success: false, message: "Order not found or cannot be cancelled" });
     }
 
-    res.status(200).json({ success: true, message: "Order marked as cancelled" });
+    // Optionally, notify farmer/admin here (e.g., via email or notification system)
+
+    res.status(200).json({ success: true, message: "Cancellation request submitted", order: updatedOrder });
   } catch (error) {
     console.error("Cancel error:", error);
     res.status(500).json({ success: false, message: "Failed to update cancellation", error: error.message });
+  }
+};
+
+// ==========================
+// 🔹 Approve Cancel (Farmer approves cancellation)
+// ==========================
+export const approveCancel = async (req, res) => {
+  try {
+    const { orderId } = req.body;
+
+    // Only allow if status is CancelRequested
+    const updatedOrder = await Order.findOneAndUpdate(
+      { _id: orderId, status: "CancelRequested" },
+      { status: "Cancelled", cancelledAt: new Date() },
+      { new: true }
+    );
+
+    if (!updatedOrder) {
+      return res.status(404).json({ success: false, message: "Order not found or not in CancelRequested state" });
+    }
+
+    if (updatedOrder?.payment?.status==="paid") {
+      await requestRefund({ paymentId: updatedOrder.payment, reason: "Order cancelled by farmer" });
+    }
+
+    // Optionally, notify customer/admin here
+
+    res.status(200).json({ success: true, message: "Order cancelled by farmer", order: updatedOrder });
+  } catch (error) {
+    console.error("Approve cancel error:", error);
+    res.status(500).json({ success: false, message: "Failed to approve cancellation", error: error.message });
   }
 };
 
@@ -395,19 +432,18 @@ export const getFarmerEarnings = async (req, res) => {
 
     // Find all completed orders containing this farmer's products
     const orders = await Order.find({
-      status: "Completed",
-      "products.farmer": farmerId,
-    });
+      status: { $in: ["Completed", "Delivered"] },
+      "products.farmer": farmerId
+    }).populate("products.product");
 
-    // Sum up the subtotal for this farmer in each order
     let totalEarnings = 0;
-    for (const order of orders) {
-      for (const item of order.products) {
-        if (item.farmer?.toString() === farmerId.toString()) {
+    orders.forEach(order => {
+      order.products.forEach(item => {
+        if (item.farmer.toString() === farmerId.toString() && item.payoutStatus === "Paid") {
           totalEarnings += item.subtotal;
         }
-      }
-    }
+      });
+    });
 
     res.json({ totalEarnings });
   } catch (error) {
@@ -478,5 +514,147 @@ export const getOrderById = async (req, res) => {
   } catch (error) {
     console.error("Error fetching order by ID:", error);
     res.status(500).json({ error: "Failed to fetch order" });
+  }
+};
+
+// ==========================
+// 🔹 Request Refund
+// ==========================
+export const requestRefund = async (req, res) => {
+  const { paymentId, reason } = req.body;
+  const payment = await Payment.findById(paymentId);
+  if (!payment || payment.status !== "paid") return res.status(400).json({ message: "Refund not possible" });
+
+  await razorpay.payments.refund(payment.gatewayPaymentId, { amount: payment.amount * 100 });
+
+  payment.status = "Processing";
+  await payment.save();
+
+  // Optionally, notify admin for manual approval
+  res.json({ message: "Refund requested", status: payment.refundStatus });
+};
+
+// ==========================
+// 🔹 Cancel Item (Customer requests cancellation for specific item)
+// ==========================
+export const cancelItem = async (req, res) => {
+  try {
+    const { orderId, productId, reason } = req.body;
+
+    const order = await Order.findOne({ _id: orderId });
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    let updated = false;
+    order.products = order.products.map(item => {
+      if (
+        item.product.toString() === productId &&
+        !["Cancelled", "Delivered"].includes(item.status)
+      ) {
+        item.status = "CancelRequested";
+        if (reason) item.cancelReason = reason;
+        updated = true;
+      }
+      return item;
+    });
+
+    if (!updated) {
+      return res.status(400).json({ success: false, message: "Item not found or cannot be cancelled" });
+    }
+
+    await order.save();
+
+    // Optionally, notify farmer/admin here
+
+    res.status(200).json({ success: true, message: "Cancellation request submitted for item", order });
+  } catch (error) {
+    console.error("Cancel item error:", error);
+    res.status(500).json({ success: false, message: "Failed to update item cancellation", error: error.message });
+  }
+};
+
+// ==========================
+// 🔹 Approve Cancel Item (Farmer approves cancellation for specific item)
+// ==========================
+export const approveCancelItem = async (req, res) => {
+  try {
+    const { orderId, productId } = req.body;
+
+    const order = await Order.findOne({ _id: orderId });
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    let updated = false;
+    order.products = order.products.map(item => {
+      if (
+        item.product.toString() === productId &&
+        item.status === "CancelRequested"
+      ) {
+        item.status = "Cancelled";
+        item.cancelledAt = new Date();
+        updated = true;
+      }
+      return item;
+    });
+
+    if (!updated) {
+      return res.status(400).json({ success: false, message: "Item not found or not in CancelRequested state" });
+    }
+
+    await order.save();
+
+    // Optionally, trigger refund logic for this item if needed
+
+    res.status(200).json({ success: true, message: "Item cancelled by farmer", order });
+  } catch (error) {
+    console.error("Approve cancel item error:", error);
+    res.status(500).json({ success: false, message: "Failed to approve item cancellation", error: error.message });
+  }
+};
+
+// ==========================
+// 🔹 Update Item Status (Admin or Farmer updates the status of an item in the order)
+// ==========================
+export const updateItemStatus = async (req, res) => {
+  try {
+    const { orderId, productId, status, trackingInfo } = req.body;
+    const allowedStatuses = ["Pending", "Shipped", "OutForDelivery", "Delivered"];
+
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({ success: false, message: "Invalid status" });
+    }
+
+    const order = await Order.findOne({ _id: orderId });
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    let updated = false;
+    order.products = order.products.map(item => {
+      if (item.product.toString() === productId) {
+        item.status = status;
+        if (trackingInfo) {
+          item.trackingInfo = {
+            ...item.trackingInfo,
+            ...trackingInfo,
+            updatedAt: new Date()
+          };
+        }
+        updated = true;
+      }
+      return item;
+    });
+
+    if (!updated) {
+      return res.status(400).json({ success: false, message: "Item not found" });
+    }
+
+    await order.save();
+    res.status(200).json({ success: true, message: "Item status updated", order });
+  } catch (error) {
+    console.error("Update item status error:", error);
+    res.status(500).json({ success: false, message: "Failed to update item status", error: error.message });
   }
 };

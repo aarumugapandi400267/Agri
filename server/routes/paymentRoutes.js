@@ -1,6 +1,6 @@
 import express from "express";
 import * as PaymentMethods from "../controllers/paymentController.js";
-import { protect } from "../middlewares/authMiddleware.js";
+import { protect, restrictTo } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
@@ -11,7 +11,14 @@ router.post("/order", protect, PaymentMethods.order);
 router.post("/verify", PaymentMethods.verify);
 
 // Cancel an order/payment
-router.post("/cancel", protect, PaymentMethods.cancel);
+router.put("/cancel", protect, PaymentMethods.cancel);
+
+router.patch("/cancel", protect, PaymentMethods.approveCancel);
+
+router.put("/cancel-item", protect, PaymentMethods.cancelItem);
+
+// Approve cancellation request for an item in an order
+router.patch("/cancel-item", protect, PaymentMethods.approveCancelItem);
 
 // Verify bank account details (optional, for farmers)
 router.post("/account/verify", protect, PaymentMethods.verifyAccount);
@@ -33,5 +40,12 @@ router.get("/orders/farmer", protect, PaymentMethods.getFarmerOrders);
 
 // Get order details by order ID (for both customer and farmer, if authorized)
 router.get("/orders/:orderId", protect, PaymentMethods.getOrderById);
+
+// Update the status of an item in an order (e.g., mark as shipped, delivered)
+router.patch("/item-status", protect, PaymentMethods.updateItemStatus);
+
+// Request a refund for an order/payment
+router.post("/refund", protect, PaymentMethods.requestRefund);
+
 
 export default router;

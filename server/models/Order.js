@@ -15,6 +15,23 @@ const orderProductSchema = new mongoose.Schema({
   quantity: { type: Number, required: true, default: 1 },
   subtotal: { type: Number, required: true },
   variant: { type: String }, // Optional: for variant like size/color/weight
+  payoutStatus: {
+    type: String,
+    enum: ["Pending", "Processing", "Paid"],
+    default: "Pending",
+  },
+  status: {
+    type: String,
+    enum: ["Pending", "Shipped", "OutForDelivery", "Delivered", "CancelRequested", "Cancelled"],
+    default: "Pending",
+  },
+  cancelReason: { type: String }, // Optional: reason for cancellation
+  trackingInfo: {
+    trackingNumber: { type: String },
+    carrier: { type: String },
+    status: { type: String },
+    updatedAt: { type: Date },
+  },
 });
 
 const orderSchema = new mongoose.Schema(
@@ -31,7 +48,7 @@ const orderSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Pending", "Completed", "Cancelled", "Shipped", "Delivered"],
+      enum: ["Pending", "Completed", "Cancelled", "Shipped", "Delivered","CancelRequested"],
       default: "Pending",
     },
     payment: {
