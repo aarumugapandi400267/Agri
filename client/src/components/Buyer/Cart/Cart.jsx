@@ -1,10 +1,31 @@
-import React, { useEffect, useState, useMemo } from 'react';
+/* eslint-disable no-unused-vars */
+import React, { useEffect, useState, useMemo } from "react";
+import { useNavigate } from 'react-router-dom';
 import {
-  Box, Typography, Button, Divider, TextField, CircularProgress,
-  Card, CardContent, Grid, IconButton, Avatar, Badge, Chip,
-  Tooltip, Paper, useTheme, Dialog, DialogTitle, DialogContent,
-  DialogActions, Stepper, Step, StepLabel
-} from '@mui/material';
+  Box,
+  Typography,
+  Button,
+  Divider,
+  TextField,
+  CircularProgress,
+  Card,
+  CardContent,
+  Grid,
+  IconButton,
+  Avatar,
+  Badge,
+  Chip,
+  Tooltip,
+  Paper,
+  useTheme,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Stepper,
+  Step,
+  StepLabel,
+} from "@mui/material";
 import {
   AddLocationAlt as AddLocationAltIcon,
   CheckCircle as CheckCircleIcon,
@@ -16,25 +37,33 @@ import {
   LocationOn as LocationIcon,
   ArrowBack as ArrowBackIcon,
   LocalShipping as ShippingIcon,
-  Payment as PaymentIcon
-} from '@mui/icons-material';
-import { useDispatch, useSelector } from 'react-redux';
-import { motion } from 'framer-motion';
-import { getCart, deleteCartItem, updateCartItem, clearCart } from '../../../actions/customer/cart';
-import { placeOrder, verifyPayment } from '../../../actions/customer/order';
-import { addUserAddress, getUser } from '../../../actions/user';
+  Payment as PaymentIcon,
+} from "@mui/icons-material";
+import { useDispatch, useSelector } from "react-redux";
+import { motion } from "framer-motion";
+import {
+  getCart,
+  deleteCartItem,
+  updateCartItem,
+  clearCart,
+} from "../../../actions/customer/cart";
+import { placeOrder, verifyPayment } from "../../../actions/customer/order";
+import { addUserAddress, getUser } from "../../../actions/user";
 
-const steps = ['Cart', 'Shipping', 'Payment'];
+const steps = ["Cart", "Shipping", "Payment"];
 
 export default function Cart() {
+  const navigate = useNavigate();
   const theme = useTheme();
   const dispatch = useDispatch();
-  const user = useSelector(state => state.authenticationReducer.AuthData);
+  const user = useSelector((state) => state.authenticationReducer.AuthData);
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editingItemId, setEditingItemId] = useState(null);
   const [editedQuantity, setEditedQuantity] = useState(0);
-  const [selectedAddressIndex, setSelectedAddressIndex] = useState(user?.defaultAddressIndex || 0);
+  const [selectedAddressIndex, setSelectedAddressIndex] = useState(
+    user?.defaultAddressIndex || 0
+  );
   const [addresses, setAddresses] = useState(user?.addresses || []);
   const [activeStep, setActiveStep] = useState(0);
   const [newAddressDialogOpen, setNewAddressDialogOpen] = useState(false);
@@ -47,7 +76,7 @@ export default function Cart() {
     state: "",
     postalCode: "",
     country: "India",
-    type: "home"
+    type: "home",
   });
 
   const fetchCart = async () => {
@@ -56,7 +85,7 @@ export default function Cart() {
       const response = await dispatch(getCart());
       setCart(response.items || []);
     } catch (error) {
-      console.error('Failed to fetch cart:', error);
+      console.error("Failed to fetch cart:", error);
     } finally {
       setLoading(false);
     }
@@ -69,10 +98,11 @@ export default function Cart() {
 
   const handleDelete = async (id) => {
     try {
+      console.log(id);
       await dispatch(deleteCartItem(id));
       fetchCart();
     } catch (error) {
-      console.error('Failed to delete item:', error);
+      console.error("Failed to delete item:", error);
     }
   };
 
@@ -82,7 +112,7 @@ export default function Cart() {
       fetchCart();
       setEditingItemId(null);
     } catch (error) {
-      console.error('Failed to update item:', error);
+      console.error("Failed to update item:", error);
     }
   };
 
@@ -113,7 +143,7 @@ export default function Cart() {
     try {
       const shippingAddress = user.addresses[selectedAddressIndex];
       const orderData = {
-        products: cart.map(item => ({
+        products: cart.map((item) => ({
           product: item.productId._id,
           quantity: item.quantity,
           variant: item.variant,
@@ -134,11 +164,13 @@ export default function Cart() {
           handler: async function (paymentResponse) {
             try {
               setLoading(true);
-              await dispatch(verifyPayment({
-                razorpay_order_id: paymentResponse.razorpay_order_id,
-                razorpay_payment_id: paymentResponse.razorpay_payment_id,
-                razorpay_signature: paymentResponse.razorpay_signature,
-              }));
+              await dispatch(
+                verifyPayment({
+                  razorpay_order_id: paymentResponse.razorpay_order_id,
+                  razorpay_payment_id: paymentResponse.razorpay_payment_id,
+                  razorpay_signature: paymentResponse.razorpay_signature,
+                })
+              );
               alert("Payment successful!");
               await dispatch(clearCart());
               fetchCart();
@@ -158,8 +190,8 @@ export default function Cart() {
             ondismiss: function () {
               setLoading(false);
               alert("Payment cancelled.");
-            }
-          } 
+            },
+          },
         };
         const rzp = new window.Razorpay(options);
         rzp.open();
@@ -178,7 +210,8 @@ export default function Cart() {
   };
 
   const calculateSubtotal = (item) => item.quantity * item.productId.price;
-  const calculateTotal = () => cart.reduce((total, item) => total + calculateSubtotal(item), 0);
+  const calculateTotal = () =>
+    cart.reduce((total, item) => total + calculateSubtotal(item), 0);
 
   const handleSelectAddress = (idx) => setSelectedAddressIndex(idx);
 
@@ -195,7 +228,7 @@ export default function Cart() {
         state: "",
         postalCode: "",
         country: "India",
-        type: "home"
+        type: "home",
       });
       await dispatch(getUser()); // Refresh user data
     } catch (error) {
@@ -205,136 +238,154 @@ export default function Cart() {
 
   const getAddressIcon = (type) => {
     switch (type) {
-      case "home": return <HomeIcon color="primary" />;
-      case "work": return <WorkIcon color="secondary" />;
-      default: return <LocationIcon color="action" />;
+      case "home":
+        return <HomeIcon color="primary" />;
+      case "work":
+        return <WorkIcon color="secondary" />;
+      default:
+        return <LocationIcon color="action" />;
     }
   };
 
-  const cartItems = useMemo(() => cart.map((item) => {
-    const isEditing = editingItemId === item.productId._id;
-    return (
-      <motion.div
-        key={item.productId._id}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        <Card
-          sx={{
-            mb: 2,
-            borderRadius: 3,
-            boxShadow: theme.shadows[1],
-            transition: 'all 0.3s ease',
-            '&:hover': {
-              boxShadow: theme.shadows[4],
-              transform: 'translateY(-2px)'
-            }
-          }}
-        >
-          <CardContent>
-            <Grid container spacing={2} alignItems="center">
-              <Grid item xs={12} sm={3} md={2}>
-                <Avatar
-                  variant="rounded"
-                  src={item.productId.images?.[0]}
-                  sx={{ width: 80, height: 80, bgcolor: theme.palette.grey[200] }}
-                >
-                  <ShoppingCartIcon />
-                </Avatar>
-              </Grid>
-              <Grid item xs={12} sm={9} md={10}>
-                <Box display="flex" justifyContent="space-between">
-                  <Box>
-                    <Typography variant="h6" fontWeight={600}>
-                      {item.productId.name}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {item.productId.description.substring(0, 100)}...
-                    </Typography>
-                    <Box mt={1}>
-                      <Chip
-                        label={`₹${item.productId.price}`}
-                        size="small"
-                        sx={{ mr: 1 }}
-                        color="primary"
-                      />
-                      {item.variant && (
-                        <Chip
-                          label={item.variant}
-                          size="small"
-                          variant="outlined"
-                        />
-                      )}
+  const cartItems = useMemo(
+    () =>
+      cart.map((item) => {
+        const isEditing = editingItemId === item.productId._id;
+        return (
+          <motion.div
+            key={item.productId._id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Card
+              sx={{
+                mb: 2,
+                borderRadius: 3,
+                boxShadow: theme.shadows[1],
+                transition: "all 0.3s ease",
+                "&:hover": {
+                  boxShadow: theme.shadows[4],
+                  transform: "translateY(-2px)",
+                },
+              }}
+            >
+              <CardContent>
+                <Grid container spacing={2} alignItems="center">
+                  <Grid item xs={12} sm={3} md={2}>
+                    <Avatar
+                      variant="rounded"
+                      src={item.productId.images?.[0]}
+                      sx={{
+                        width: 80,
+                        height: 80,
+                        bgcolor: theme.palette.grey[200],
+                      }}
+                    >
+                      <ShoppingCartIcon />
+                    </Avatar>
+                  </Grid>
+                  <Grid item xs={12} sm={9} md={10}>
+                    <Box display="flex" justifyContent="space-between">
+                      <Box>
+                        <Typography variant="h6" fontWeight={600}>
+                          {item.productId.name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {item.productId.description.substring(0, 100)}...
+                        </Typography>
+                        <Box mt={1}>
+                          <Chip
+                            label={`₹${item.productId.price}`}
+                            size="small"
+                            sx={{ mr: 1 }}
+                            color="primary"
+                          />
+                          {item.variant && (
+                            <Chip
+                              label={item.variant}
+                              size="small"
+                              variant="outlined"
+                            />
+                          )}
+                        </Box>
+                      </Box>
+                      <Box>
+                        <Typography variant="h6" color="primary">
+                          ₹{calculateSubtotal(item)}
+                        </Typography>
+                      </Box>
                     </Box>
-                  </Box>
-                  <Box>
-                    <Typography variant="h6" color="primary">
-                      ₹{calculateSubtotal(item)}
-                    </Typography>
-                  </Box>
-                </Box>
 
-                <Box display="flex" alignItems="center" mt={2}>
-                  {isEditing ? (
-                    <>
-                      <TextField
-                        type="number"
-                        value={editedQuantity}
-                        onChange={handleQuantityChange}
-                        size="small"
-                        sx={{ width: '80px', mr: 2 }}
-                        inputProps={{ min: 1 }}
-                      />
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        size="small"
-                        onClick={() => handleUpdate(item.productId._id, editedQuantity)}
-                        sx={{ mr: 1 }}
-                      >
-                        Update
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        onClick={() => setEditingItemId(null)}
-                      >
-                        Cancel
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <Typography variant="body1" sx={{ mr: 2 }}>
-                        Qty: <strong>{item.quantity}</strong>
-                      </Typography>
-                      <Tooltip title="Edit quantity">
+                    <Box display="flex" alignItems="center" mt={2}>
+                      {isEditing ? (
+                        <>
+                          <TextField
+                            type="number"
+                            value={editedQuantity}
+                            onChange={handleQuantityChange}
+                            size="small"
+                            sx={{ width: "80px", mr: 2 }}
+                            inputProps={{ min: 1 }}
+                          />
+                          <Button
+                            variant="contained"
+                            color="primary"
+                            size="small"
+                            onClick={() =>
+                              handleUpdate(item.productId._id, editedQuantity)
+                            }
+                            sx={{ mr: 1 }}
+                          >
+                            Update
+                          </Button>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => setEditingItemId(null)}
+                          >
+                            Cancel
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <Typography variant="body1" sx={{ mr: 2 }}>
+                            Qty: <strong>{item.quantity}</strong>
+                          </Typography>
+                          <Tooltip title="Edit quantity">
+                            <IconButton
+                              color="primary"
+                              onClick={() =>
+                                handleEditClick(
+                                  item.productId._id,
+                                  item.quantity
+                                )
+                              }
+                              sx={{ mr: 1 }}
+                            >
+                              <EditIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </>
+                      )}
+                      <Tooltip title="Remove item">
                         <IconButton
-                          color="primary"
-                          onClick={() => handleEditClick(item.productId._id, item.quantity)}
-                          sx={{ mr: 1 }}
+                          color="error"
+                          onClick={() => handleDelete(item.productId._id)}
                         >
-                          <EditIcon fontSize="small" />
+                          <DeleteIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
-                    </>
-                  )}
-                  <Tooltip title="Remove item">
-                    <IconButton
-                      color="error"
-                      onClick={() => handleDelete(item.productId._id)}
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                </Box>
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
-      </motion.div>
-    );
-  }), [cart, editingItemId, editedQuantity, theme]);
+                    </Box>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+          </motion.div>
+        );
+      }),
+    [cart, editingItemId, editedQuantity, theme]
+  );
 
   const total = useMemo(() => calculateTotal(), [cart]);
 
@@ -350,7 +401,7 @@ export default function Cart() {
         return (
           <Paper elevation={0} sx={{ p: 3, borderRadius: 3 }}>
             <Typography variant="h6" mb={3} fontWeight={600}>
-              {cart.length} {cart.length === 1 ? 'Item' : 'Items'} in Cart
+              {cart.length} {cart.length === 1 ? "Item" : "Items"} in Cart
             </Typography>
             {cartItems}
           </Paper>
@@ -364,7 +415,7 @@ export default function Cart() {
                 Select Shipping Address
               </Typography>
             </Box>
-            
+
             {user?.addresses?.length > 0 ? (
               <Grid container spacing={2}>
                 {user.addresses.map((addr, idx) => (
@@ -372,42 +423,49 @@ export default function Cart() {
                     <Card
                       onClick={() => handleSelectAddress(idx)}
                       sx={{
-                        border: selectedAddressIndex === idx ? `2px solid ${theme.palette.primary.main}` : '1px solid #e0e0e0',
+                        border:
+                          selectedAddressIndex === idx
+                            ? `2px solid ${theme.palette.primary.main}`
+                            : "1px solid #e0e0e0",
                         borderRadius: 2,
-                        cursor: 'pointer',
-                        transition: 'all 0.3s ease',
-                        '&:hover': {
+                        cursor: "pointer",
+                        transition: "all 0.3s ease",
+                        "&:hover": {
                           borderColor: theme.palette.primary.main,
-                          boxShadow: theme.shadows[2]
+                          boxShadow: theme.shadows[2],
                         },
-                        position: 'relative',
-                        overflow: 'visible'
+                        position: "relative",
+                        overflow: "visible",
                       }}
                     >
                       {selectedAddressIndex === idx && (
                         <Box
                           sx={{
-                            position: 'absolute',
+                            position: "absolute",
                             top: -10,
                             right: -10,
                             backgroundColor: theme.palette.primary.main,
-                            borderRadius: '50%',
-                            padding: '4px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
+                            borderRadius: "50%",
+                            padding: "4px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                           }}
                         >
-                          <CheckCircleIcon sx={{ color: 'white', fontSize: 20 }} />
+                          <CheckCircleIcon
+                            sx={{ color: "white", fontSize: 20 }}
+                          />
                         </Box>
                       )}
                       <CardContent>
                         <Box display="flex" alignItems="center" gap={2} mb={1}>
                           <Avatar sx={{ bgcolor: theme.palette.grey[100] }}>
-                            {getAddressIcon(addr.type || 'other')}
+                            {getAddressIcon(addr.type || "other")}
                           </Avatar>
                           <Box>
-                            <Typography fontWeight={600}>{addr.name}</Typography>
+                            <Typography fontWeight={600}>
+                              {addr.name}
+                            </Typography>
                             <Typography variant="body2" color="text.secondary">
                               {addr.phone}
                             </Typography>
@@ -432,22 +490,25 @@ export default function Cart() {
                   <Card
                     onClick={() => setNewAddressDialogOpen(true)}
                     sx={{
-                      border: '2px dashed #e0e0e0',
+                      border: "2px dashed #e0e0e0",
                       borderRadius: 2,
-                      height: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
+                      height: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                      transition: "all 0.3s ease",
+                      "&:hover": {
                         borderColor: theme.palette.primary.main,
-                        backgroundColor: theme.palette.action.hover
-                      }
+                        backgroundColor: theme.palette.action.hover,
+                      },
                     }}
                   >
-                    <CardContent sx={{ textAlign: 'center', py: 4 }}>
-                      <AddLocationAltIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
+                    <CardContent sx={{ textAlign: "center", py: 4 }}>
+                      <AddLocationAltIcon
+                        color="primary"
+                        sx={{ fontSize: 40, mb: 1 }}
+                      />
                       <Typography variant="subtitle1" color="primary">
                         Add New Address
                       </Typography>
@@ -457,7 +518,9 @@ export default function Cart() {
               </Grid>
             ) : (
               <Box textAlign="center" py={4}>
-                <AddLocationAltIcon sx={{ fontSize: 60, color: 'text.disabled', mb: 2 }} />
+                <AddLocationAltIcon
+                  sx={{ fontSize: 60, color: "text.disabled", mb: 2 }}
+                />
                 <Typography variant="h6" gutterBottom>
                   No Address Added
                 </Typography>
@@ -484,24 +547,35 @@ export default function Cart() {
                 Payment Information
               </Typography>
             </Box>
-            
+
             <Box mb={4}>
               <Typography variant="subtitle1" mb={2}>
                 Order Summary
               </Typography>
-              
-              <Box sx={{ backgroundColor: theme.palette.grey[50], p: 3, borderRadius: 2 }}>
+
+              <Box
+                sx={{
+                  backgroundColor: theme.palette.grey[50],
+                  p: 3,
+                  borderRadius: 2,
+                }}
+              >
                 {cart.map((item, idx) => (
-                  <Box key={idx} display="flex" justifyContent="space-between" mb={1}>
+                  <Box
+                    key={idx}
+                    display="flex"
+                    justifyContent="space-between"
+                    mb={1}
+                  >
                     <Typography>
                       {item.productId.name} × {item.quantity}
                     </Typography>
                     <Typography>₹{calculateSubtotal(item)}</Typography>
                   </Box>
                 ))}
-                
+
                 <Divider sx={{ my: 2 }} />
-                
+
                 <Box display="flex" justifyContent="space-between">
                   <Typography fontWeight={600}>Subtotal:</Typography>
                   <Typography fontWeight={600}>₹{total}</Typography>
@@ -510,9 +584,9 @@ export default function Cart() {
                   <Typography>Shipping:</Typography>
                   <Typography color="success.main">FREE</Typography>
                 </Box>
-                
+
                 <Divider sx={{ my: 2 }} />
-                
+
                 <Box display="flex" justifyContent="space-between">
                   <Typography variant="h6">Total:</Typography>
                   <Typography variant="h6" fontWeight={700}>
@@ -521,7 +595,7 @@ export default function Cart() {
                 </Box>
               </Box>
             </Box>
-            
+
             <Box mb={4}>
               <Typography variant="subtitle1" mb={2}>
                 Shipping Address
@@ -533,10 +607,13 @@ export default function Cart() {
                   </Typography>
                   <Typography variant="body2">
                     {user.addresses[selectedAddressIndex].addressLine1}
-                    {user.addresses[selectedAddressIndex].addressLine2 && `, ${user.addresses[selectedAddressIndex].addressLine2}`}
+                    {user.addresses[selectedAddressIndex].addressLine2 &&
+                      `, ${user.addresses[selectedAddressIndex].addressLine2}`}
                   </Typography>
                   <Typography variant="body2">
-                    {user.addresses[selectedAddressIndex].city}, {user.addresses[selectedAddressIndex].state} - {user.addresses[selectedAddressIndex].postalCode}
+                    {user.addresses[selectedAddressIndex].city},{" "}
+                    {user.addresses[selectedAddressIndex].state} -{" "}
+                    {user.addresses[selectedAddressIndex].postalCode}
                   </Typography>
                   <Typography variant="body2">
                     {user.addresses[selectedAddressIndex].country}
@@ -547,9 +624,10 @@ export default function Cart() {
                 </Card>
               )}
             </Box>
-            
+
             <Typography color="text.secondary" variant="body2">
-              By placing your order, you agree to our Terms of Service and Privacy Policy.
+              By placing your order, you agree to our Terms of Service and
+              Privacy Policy.
             </Typography>
           </Paper>
         );
@@ -567,11 +645,7 @@ export default function Cart() {
         <Typography variant="h4" fontWeight={700}>
           Checkout
         </Typography>
-        <Badge
-          badgeContent={cart.length}
-          color="primary"
-          sx={{ ml: 2 }}
-        >
+        <Badge badgeContent={cart.length} color="primary" sx={{ ml: 2 }}>
           <ShoppingCartIcon fontSize="large" />
         </Badge>
       </Box>
@@ -591,7 +665,7 @@ export default function Cart() {
       ) : cart.length > 0 ? (
         <>
           {renderStepContent(activeStep)}
-          
+
           <Box display="flex" justifyContent="space-between" mt={4}>
             <Button
               variant="outlined"
@@ -601,7 +675,7 @@ export default function Cart() {
             >
               Back
             </Button>
-            
+
             {activeStep === steps.length - 1 ? (
               <Button
                 variant="contained"
@@ -639,7 +713,11 @@ export default function Cart() {
           <Button
             variant="contained"
             size="large"
-            href="/products"
+            onClick={() => {
+              localStorage.setItem('buyerActiveTab', 0); // Set Home tab as active
+              navigate('/home'); // Optionally navigate to home if you want
+              window.location.reload();// Reload to refresh the page
+            }}
             sx={{ borderRadius: 2, px: 4 }}
           >
             Continue Shopping
@@ -648,23 +726,32 @@ export default function Cart() {
       )}
 
       {/* New Address Dialog */}
-      <Dialog open={newAddressDialogOpen} onClose={() => setNewAddressDialogOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle sx={{ borderBottom: `1px solid ${theme.palette.divider}`, py: 2 }}>
-          <Typography variant="h6" fontWeight={600}>Add New Address</Typography>
+      <Dialog
+        open={newAddressDialogOpen}
+        onClose={() => setNewAddressDialogOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle
+          sx={{ borderBottom: `1px solid ${theme.palette.divider}`, py: 2 }}
+        >
+          <Typography variant="h6" fontWeight={600}>
+            Add New Address
+          </Typography>
         </DialogTitle>
         <DialogContent sx={{ py: 3 }}>
           <Box display="flex" gap={2} mb={3}>
-            {['home', 'work', 'other'].map((type) => (
+            {["home", "work", "other"].map((type) => (
               <Button
                 key={type}
-                variant={newAddress.type === type ? 'contained' : 'outlined'}
+                variant={newAddress.type === type ? "contained" : "outlined"}
                 startIcon={getAddressIcon(type)}
                 onClick={() => setNewAddress({ ...newAddress, type })}
                 sx={{
-                  textTransform: 'capitalize',
+                  textTransform: "capitalize",
                   flex: 1,
                   borderRadius: 2,
-                  py: 1.5
+                  py: 1.5,
                 }}
               >
                 {type}
@@ -679,7 +766,9 @@ export default function Cart() {
                 fullWidth
                 size="small"
                 value={newAddress.name}
-                onChange={(e) => setNewAddress({ ...newAddress, name: e.target.value })}
+                onChange={(e) =>
+                  setNewAddress({ ...newAddress, name: e.target.value })
+                }
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -688,7 +777,9 @@ export default function Cart() {
                 fullWidth
                 size="small"
                 value={newAddress.phone}
-                onChange={(e) => setNewAddress({ ...newAddress, phone: e.target.value })}
+                onChange={(e) =>
+                  setNewAddress({ ...newAddress, phone: e.target.value })
+                }
               />
             </Grid>
             <Grid item xs={12}>
@@ -697,7 +788,9 @@ export default function Cart() {
                 fullWidth
                 size="small"
                 value={newAddress.addressLine1}
-                onChange={(e) => setNewAddress({ ...newAddress, addressLine1: e.target.value })}
+                onChange={(e) =>
+                  setNewAddress({ ...newAddress, addressLine1: e.target.value })
+                }
               />
             </Grid>
             <Grid item xs={12}>
@@ -706,7 +799,9 @@ export default function Cart() {
                 fullWidth
                 size="small"
                 value={newAddress.addressLine2}
-                onChange={(e) => setNewAddress({ ...newAddress, addressLine2: e.target.value })}
+                onChange={(e) =>
+                  setNewAddress({ ...newAddress, addressLine2: e.target.value })
+                }
                 helperText="Apartment, suite, unit, building, floor, etc."
               />
             </Grid>
@@ -716,7 +811,9 @@ export default function Cart() {
                 fullWidth
                 size="small"
                 value={newAddress.city}
-                onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
+                onChange={(e) =>
+                  setNewAddress({ ...newAddress, city: e.target.value })
+                }
               />
             </Grid>
             <Grid item xs={12} md={4}>
@@ -725,7 +822,9 @@ export default function Cart() {
                 fullWidth
                 size="small"
                 value={newAddress.state}
-                onChange={(e) => setNewAddress({ ...newAddress, state: e.target.value })}
+                onChange={(e) =>
+                  setNewAddress({ ...newAddress, state: e.target.value })
+                }
               />
             </Grid>
             <Grid item xs={12} md={4}>
@@ -734,7 +833,9 @@ export default function Cart() {
                 fullWidth
                 size="small"
                 value={newAddress.postalCode}
-                onChange={(e) => setNewAddress({ ...newAddress, postalCode: e.target.value })}
+                onChange={(e) =>
+                  setNewAddress({ ...newAddress, postalCode: e.target.value })
+                }
               />
             </Grid>
             <Grid item xs={12}>
@@ -743,12 +844,16 @@ export default function Cart() {
                 fullWidth
                 size="small"
                 value={newAddress.country}
-                onChange={(e) => setNewAddress({ ...newAddress, country: e.target.value })}
+                onChange={(e) =>
+                  setNewAddress({ ...newAddress, country: e.target.value })
+                }
               />
             </Grid>
           </Grid>
         </DialogContent>
-        <DialogActions sx={{ borderTop: `1px solid ${theme.palette.divider}`, p: 2 }}>
+        <DialogActions
+          sx={{ borderTop: `1px solid ${theme.palette.divider}`, p: 2 }}
+        >
           <Button
             onClick={() => setNewAddressDialogOpen(false)}
             variant="outlined"
