@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -9,24 +9,45 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-const ProfileSettings = ({ user }) => {
-  const [name, setName] = useState(user.name);
-  const [email, setEmail] = useState(user.email);
-  const [phone, setPhone] = useState(user.phone || "");
+const AdminProfile = () => {
+  const [admin, setAdmin] = useState(null);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const { toast } = useToast();
 
+  useEffect(() => {
+    // Fetch admin profile from backend
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem("adminToken");
+        const res = await apiRequest("GET", "/api/admin/profile", null, {
+          Authorization: `Bearer ${token}`,
+        });
+        setAdmin(res.admin);
+        setName(res.admin.name);
+        setEmail(res.admin.email);
+      } catch (err) {
+        setAdmin(null);
+      }
+    };
+    fetchProfile();
+  }, []);
+
   const updateProfile = useMutation({
     mutationFn: async () => {
-      return apiRequest('PATCH', `/api/users/${user.id}`, {
-        name,
-        email,
-        phone: phone || undefined
-      });
+      const token = localStorage.getItem("adminToken");
+      return apiRequest(
+        "PATCH",
+        "/api/admin/profile",
+        { name, email },
+        { Authorization: `Bearer ${token}` }
+      );
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      setAdmin((prev) => ({ ...prev, name, email }));
       toast({
         title: "Profile Updated",
         description: "Your profile information has been updated successfully.",
@@ -39,7 +60,7 @@ const ProfileSettings = ({ user }) => {
         description: error instanceof Error ? error.message : "Unknown error occurred",
         variant: "destructive",
       });
-    }
+    },
   });
 
   const updatePassword = useMutation({
@@ -47,10 +68,13 @@ const ProfileSettings = ({ user }) => {
       if (newPassword !== confirmPassword) {
         throw new Error("New passwords don't match");
       }
-      return apiRequest('PATCH', `/api/users/${user.id}/password`, {
-        currentPassword,
-        newPassword
-      });
+      const token = localStorage.getItem("adminToken");
+      return apiRequest(
+        "PATCH",
+        "/api/admin/profile/password",
+        { currentPassword, newPassword },
+        { Authorization: `Bearer ${token}` }
+      );
     },
     onSuccess: () => {
       setCurrentPassword("");
@@ -68,7 +92,7 @@ const ProfileSettings = ({ user }) => {
         description: error instanceof Error ? error.message : "Unknown error occurred",
         variant: "destructive",
       });
-    }
+    },
   });
 
   const handleUpdateProfile = (e) => {
@@ -81,16 +105,24 @@ const ProfileSettings = ({ user }) => {
     updatePassword.mutate();
   };
 
+  if (!admin) {
+    return (
+      <div className="flex justify-center mt-8">
+        <span className="text-neutral-500">Loading profile...</span>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-8 flex items-center">
         <Avatar className="h-24 w-24 mr-6">
-          <AvatarImage src={user.profileImage} alt={user.name} />
-          <AvatarFallback className="text-lg">{user.name.charAt(0)}</AvatarFallback>
+          <AvatarImage src={admin.profileImage} alt={admin.name} />
+          <AvatarFallback className="text-lg">{admin.name.charAt(0)}</AvatarFallback>
         </Avatar>
         <div>
-          <h2 className="text-2xl font-bold">{user.name}</h2>
-          <p className="text-neutral-500 mt-1">Administrator</p>
+          <h2 className="text-2xl font-bold">{admin.name}</h2>
+          <p className="text-neutral-500 mt-1">{admin.role}</p>
         </div>
       </div>
 
@@ -99,14 +131,12 @@ const ProfileSettings = ({ user }) => {
           <TabsTrigger value="profile">Profile Information</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="profile">
           <Card>
             <CardHeader>
               <CardTitle>Profile Information</CardTitle>
-              <CardDescription>
-                Update your personal details
-              </CardDescription>
+              <CardDescription>Update your personal details</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleUpdateProfile} className="space-y-4">
@@ -120,7 +150,6 @@ const ProfileSettings = ({ user }) => {
                       required
                     />
                   </div>
-                  
                   <div className="space-y-2">
                     <Label htmlFor="email">Email Address</Label>
                     <Input
@@ -131,29 +160,18 @@ const ProfileSettings = ({ user }) => {
                       required
                     />
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input
-                      id="phone"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                    />
-                  </div>
-                  
                   <div className="space-y-2">
                     <Label htmlFor="role">Role</Label>
                     <Input
                       id="role"
-                      value={user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                      value={admin.role.charAt(0).toUpperCase() + admin.role.slice(1)}
                       disabled
                     />
                   </div>
                 </div>
-                
                 <div className="flex justify-end">
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     className="w-full md:w-auto"
                     disabled={updateProfile.isPending}
                   >
@@ -164,7 +182,7 @@ const ProfileSettings = ({ user }) => {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="security">
           <Card>
             <CardHeader>
@@ -185,7 +203,6 @@ const ProfileSettings = ({ user }) => {
                     required
                   />
                 </div>
-                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="newPassword">New Password</Label>
@@ -197,7 +214,6 @@ const ProfileSettings = ({ user }) => {
                       required
                     />
                   </div>
-                  
                   <div className="space-y-2">
                     <Label htmlFor="confirmPassword">Confirm New Password</Label>
                     <Input
@@ -209,10 +225,9 @@ const ProfileSettings = ({ user }) => {
                     />
                   </div>
                 </div>
-                
                 <div className="flex justify-end">
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     className="w-full md:w-auto"
                     disabled={updatePassword.isPending}
                   >
@@ -228,4 +243,4 @@ const ProfileSettings = ({ user }) => {
   );
 };
 
-export default ProfileSettings;
+export default AdminProfile;

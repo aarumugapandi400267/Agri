@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   Typography, Box, Tabs, Tab, Card, CardContent, Grid, Button, Divider,
   Dialog, DialogTitle, DialogContent, DialogActions, Snackbar, Alert,
-  Avatar, Paper, Chip, CircularProgress
+  Avatar, Paper, Chip, CircularProgress, TextField
 } from '@mui/material';
 import {
   PersonOutline, LocationOnOutlined, SettingsOutlined,
@@ -13,6 +13,8 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { getUser } from '../../../actions/user';
 import { getCustomerOrders, cancelOrder, cancelItem } from '../../../actions/order';
+import { updateUser } from '../../../actions/user';
+import { verifyPayment } from '../../../actions/customer/order'; // Adjust path if needed
 
 // Helper functions
 const getStatusColor = (status) => {
@@ -35,14 +37,64 @@ const getStatusChipColor = (status) => {
   }
 };
 
-function ProfileTab({ user }) {
+function ProfileTab({ user, onUpdateProfile }) {
+  const [editOpen, setEditOpen] = useState(false);
+  const [editData, setEditData] = useState({
+    name: user?.name || "",
+    email: user?.email || "",
+    image: null,
+    preview: user?.profileImage || ""
+  });
+  const fileInputRef = useRef();
+
+  const handleEditOpen = () => setEditOpen(true);
+  const handleEditClose = () => setEditOpen(false);
+
+  const handleChange = (e) => {
+    setEditData({ ...editData, [e.target.name]: e.target.value });
+  };
+
+  // Handle profile image change
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setEditData({
+        ...editData,
+        image: file,
+        preview: URL.createObjectURL(file)
+      });
+    }
+  };
+
+  const handleAvatarClick = () => {
+    if (fileInputRef.current) fileInputRef.current.click();
+  };
+
+  const handleSave = () => {
+    onUpdateProfile(editData);
+    setEditOpen(false);
+  };
+
+  useEffect(() => {
+    setEditData({
+      name: user?.name || "",
+      email: user?.email || "",
+      image: null,
+      preview: user?.profileImage || ""
+    });
+  }, [user]);
+
   return (
     <Card sx={{ p: 3, mb: 3 }}>
       <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
         Profile Information
       </Typography>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-        <Avatar sx={{ width: 80, height: 80, mr: 3 }}>
+        <Avatar
+          sx={{ width: 80, height: 80, mr: 3, cursor: 'pointer' }}
+          src={user?.profileImage}
+          onClick={handleEditOpen}
+        >
           {user?.name?.charAt(0)}
         </Avatar>
         <Box>
@@ -50,7 +102,6 @@ function ProfileTab({ user }) {
           <Typography color="text.secondary">{user?.email}</Typography>
         </Box>
       </Box>
-      
       <Grid container spacing={2}>
         <Grid item xs={12} md={6}>
           <Paper elevation={0} sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 2 }}>
@@ -65,14 +116,61 @@ function ProfileTab({ user }) {
           </Paper>
         </Grid>
       </Grid>
-      
-      <Button 
-        variant="outlined" 
+      <Button
+        variant="outlined"
         startIcon={<Edit />}
         sx={{ mt: 3 }}
+        onClick={handleEditOpen}
       >
         Edit Profile
       </Button>
+      <Dialog open={editOpen} onClose={handleEditClose}>
+        <DialogTitle>Edit Profile</DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2 }}>
+            <Avatar
+              sx={{ width: 80, height: 80, mb: 2, cursor: 'pointer' }}
+              src={editData.preview}
+              onClick={handleAvatarClick}
+            >
+              {editData.name?.charAt(0)}
+            </Avatar>
+            <input
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              style={{ display: 'none' }}
+              onChange={handleImageChange}
+            />
+            <Button variant="text" onClick={handleAvatarClick}>
+              Change Photo
+            </Button>
+          </Box>
+          <TextField
+            margin="normal"
+            label="Name"
+            name="name"
+            value={editData.name}
+            onChange={handleChange}
+            fullWidth
+          />
+          <TextField
+            margin="normal"
+            label="Email"
+            name="email"
+            value={editData.email}
+            onChange={handleChange}
+            fullWidth
+            disabled // Remove this line if you want email editable
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleEditClose}>Cancel</Button>
+          <Button onClick={handleSave} variant="contained" color="primary">
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Card>
   );
 }
@@ -282,11 +380,14 @@ function StatsTab({ orders }) {
 }
 
 function OrdersTab({ orders, onCancel, onCancelItem }) {
+  const dispatch = useDispatch();
+  const [payingOrderId, setPayingOrderId] = useState(null);
+  const [payLoading, setPayLoading] = useState(false);
+  const [alert, setAlert] = useState({ open: false, message: "", severity: "success" });
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [isItemCancel, setIsItemCancel] = useState(false);
-  const [alert, setAlert] = useState({ open: false, message: "", severity: "success" });
 
   const handleCancelClick = (orderId) => {
     setSelectedOrderId(orderId);
@@ -326,6 +427,27 @@ function OrdersTab({ orders, onCancel, onCancelItem }) {
     setIsItemCancel(false);
   };
 
+  const handlePayNow = async (order) => {
+    setPayingOrderId(order._id);
+    setPayLoading(true);
+    try {
+      // You may need to collect payment details here or redirect to a payment gateway
+      // For demo, we'll just call verifyPayment with orderId
+      const paymentData = { orderId: order._id, amount: order.totalPrice };
+      const result = await dispatch(verifyPayment(paymentData));
+      if (result && !result.error) {
+        setAlert({ open: true, message: "Payment successful!", severity: "success" });
+        // Optionally refresh orders
+      } else {
+        setAlert({ open: true, message: result.error || "Payment failed.", severity: "error" });
+      }
+    } catch (err) {
+      setAlert({ open: true, message: "Payment failed.", severity: "error" });
+    }
+    setPayLoading(false);
+    setPayingOrderId(null);
+  };
+
   return (
     <Box>
       <Typography variant="h5" sx={{ fontWeight: 600, mb: 3 }}>Order History</Typography>
@@ -337,7 +459,7 @@ function OrdersTab({ orders, onCancel, onCancelItem }) {
           <Typography color="text.secondary" sx={{ mb: 3 }}>
             You haven't placed any orders yet. Start shopping to see them here!
           </Typography>
-          <Button variant="contained" href="/products">
+          <Button variant="contained" href="/home">
             Browse Products
           </Button>
         </Paper>
@@ -432,25 +554,18 @@ function OrdersTab({ orders, onCancel, onCancelItem }) {
                 </Typography>
                 
                 <Box sx={{ display: 'flex', gap: 1 }}>
-                  <Button 
-                    variant="outlined" 
-                    color="primary"
-                    onClick={() => alert(`View order details ${order._id}`)}
-                  >
-                    View Details
-                  </Button>
-                  
-                  {order.payment?.status !== "Completed" && order.payment?.status !== "paid" && (
+                  {order.payment?.status !== "Completed" && order.payment?.status !== "paid" && order?.status!=="Cancelled"&& (
                     <Button
                       variant="contained"
                       color="primary"
-                      onClick={() => alert(`Redirecting to payment for order ${order._id}`)}
+                      onClick={() => handlePayNow(order)}
+                      disabled={payLoading && payingOrderId === order._id}
                     >
-                      Pay Now
+                      {payLoading && payingOrderId === order._id ? "Processing..." : "Pay Now"}
                     </Button>
                   )}
                   
-                  {order.status !== "Delivered" && order.status !== "CancelRequested" && (
+                  {/* {order.status !== "Delivered" && order.status !== "CancelRequested" && order?.status!=="Cancelled" && (
                     <Button
                       variant="outlined"
                       color="error"
@@ -458,7 +573,7 @@ function OrdersTab({ orders, onCancel, onCancelItem }) {
                     >
                       Cancel Order
                     </Button>
-                  )}
+                  )} */}
                 </Box>
               </Box>
             </CardContent>
@@ -513,6 +628,7 @@ export default function ProfilePage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState({ open: false, message: "", severity: "success" });
+  const [profileLoading, setProfileLoading] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -528,6 +644,26 @@ export default function ProfilePage() {
     })
     .finally(() => setLoading(false));
   }, [dispatch]);
+
+  // Update profile handler using dispatch (like farmer's profile)
+  const handleUpdateProfile = async (data) => {
+    setProfileLoading(true);
+    try {
+      // If you want to support image upload, use FormData as in the farmer's profile
+      const formData = new FormData();
+      formData.append("name", data.name);
+      formData.append("email", data.email);
+      if (data.image) {
+        formData.append("profileImage", data.image);
+      }
+      await dispatch(updateUser(formData));
+      setAlert({ open: true, message: "Profile updated successfully.", severity: "success" });
+      dispatch(getUser());
+    } catch {
+      setAlert({ open: true, message: "Failed to update profile.", severity: "error" });
+    }
+    setProfileLoading(false);
+  };
 
   const handleCancelOrder = async (orderId) => {
     try {
@@ -614,7 +750,7 @@ export default function ProfilePage() {
       </Tabs>
       
       <Box>
-        {tab === 0 && <ProfileTab user={user} />}
+        {tab === 0 && <ProfileTab user={user} onUpdateProfile={handleUpdateProfile} />}
         {tab === 1 && <AddressTab user={user} />}
         {tab === 2 && <SettingsTab />}
         {tab === 3 && <StatsTab orders={orders} />}
