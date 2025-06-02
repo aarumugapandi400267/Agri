@@ -27,4 +27,11 @@ router.post('/categories', adminController.createCategory);
 router.put('/categories/:id', adminController.updateCategory);
 router.delete('/categories/:id', adminController.deleteCategory);
 
+router.get('/regions', adminController.getAllRegions);
+router.post('/regions', adminController.createRegion);
+router.put('/regions/:id', adminController.updateRegion);
+router.delete('/regions/:id', adminController.deleteRegion);
+
+router.get('/dashboard/kpis', adminController.getDashboardKPIs);
+
 export default router;

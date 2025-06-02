@@ -3,6 +3,7 @@ import Product from "../models/Product.js";
 import Order from "../models/Order.js";
 import Category from "../models/Category.js";
 import Admin from "../models/Admin.js";
+import Region from "../models/Region.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
@@ -209,4 +210,64 @@ export const deleteCategory = async (req, res) => {
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
+};
+
+// Region management
+export const getAllRegions = async (req, res) => {
+  try {
+    const regions = await Region.find();
+    res.json(regions);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const createRegion = async (req, res) => {
+  try {
+    const region = new Region(req.body);
+    await region.save();
+    res.status(201).json(region);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const updateRegion = async (req, res) => {
+  try {
+    const region = await Region.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!region) return res.status(404).json({ error: "Region not found" });
+    res.json(region);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const deleteRegion = async (req, res) => {
+  try {
+    const region = await Region.findByIdAndDelete(req.params.id);
+    if (!region) return res.status(404).json({ error: "Region not found" });
+    res.json({ message: "Region deleted" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Dashboard KPIs
+export const getDashboardKPIs = async (req, res) => {
+  try {
+    const userCount = await User.countDocuments();
+    const productCount = await Product.countDocuments();
+    const orderCount = await Order.countDocuments();
+    const totalRevenue = await Order.aggregate([
+      { $group: { _id: null, total: { $sum: "$totalAmount" } } }
+    ]);
+    res.json({
+      userCount,
+      productCount,
+      orderCount,
+      totalRevenue: totalRevenue[0]?.total || 0
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };

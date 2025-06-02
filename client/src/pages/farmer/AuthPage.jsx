@@ -58,7 +58,7 @@ const AuthPage = () => {
           gutterBottom
           sx={{ color: "#1e2a78" }}
         >
-          🌾 Farmers Market
+          🌾 FARKIT
         </Typography>
 
         <Tabs
