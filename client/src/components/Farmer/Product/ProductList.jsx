@@ -224,7 +224,7 @@ const ProductList = ({ dispatch }) => {
                 </IconButton>
               </Tooltip>
               <Tooltip title="Delete Product">
-                <IconButton color="error">
+                <IconButton color="error" >
                   <DeleteIcon />
                 </IconButton>
               </Tooltip>

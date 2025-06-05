@@ -6,6 +6,7 @@ const API = axios.create({
 })
 
 API.interceptors.request.use((req) => {
+    // const profile =delete JSON.parse(localStorage.getItem("profile")).user.profileImage;
     const token = JSON.parse(localStorage.getItem("profile"))?.token;
   
     if (token) {
@@ -22,7 +23,7 @@ API.interceptors.request.use((req) => {
   
 
 API.interceptors.response.use((response)=>response,(error)=>{
-    if(error.response?.status===401){
+    if(error?.response?.status===401){
         console.warn("Session expired. Logging out...");
         // localStorage.removeItem("profile")
         window.location.href="/auth"

@@ -28,6 +28,7 @@ import {
   Avatar,
   Badge,
   LinearProgress,
+  CircularProgress,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useDispatch } from "react-redux";
@@ -64,6 +65,7 @@ const FarmerOrderList = () => {
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [confirmItemOpen, setConfirmItemOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState({ orderId: null, productId: null });
+  const [itemLoading, setItemLoading] = useState({}); // { [orderId_productId]: true/false }
 
   const dispatch = useDispatch();
   const theme = useTheme();
@@ -79,7 +81,7 @@ const FarmerOrderList = () => {
         const res = await dispatch(fetchOrders("farmer"));
         setOrders(res || []);
       } catch (error) {
-        setAlert({ open: true, message: "Failed to load orders", severity: "error" });
+        setAlert({ open: true, message: error.message, severity: "error" });
       } finally {
         setLoading(false);
       }
@@ -154,13 +156,16 @@ const FarmerOrderList = () => {
   };
 
   const handleUpdateItemStatus = async (orderId, productId, status) => {
+    const key = `${orderId}_${productId}`;
+    setItemLoading((prev) => ({ ...prev, [key]: true }));
     try {
       await dispatch(updateItemStatus(orderId, productId, status));
       setAlert({ open: true, message: `Item marked as ${status}`, severity: "success" });
-      dispatch(fetchOrders("farmer")).then((res) => setOrders(res || []));
+      await dispatch(fetchOrders("farmer")).then((res) => setOrders(res || []));
     } catch (error) {
       setAlert({ open: true, message: error.message, severity: "error" });
     }
+    setItemLoading((prev) => ({ ...prev, [key]: false }));
   };
 
   const getStatusColor = (status) => {
@@ -196,22 +201,36 @@ const FarmerOrderList = () => {
   };
 
   return (
-    <Box sx={{ p: isDesktop ? 3 : 2 }}>
+    <Box sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
       {loading && <LinearProgress color="primary" />}
-      
-      <Paper elevation={0} sx={{ p: 2, mb: 3, borderRadius: 2, bgcolor: 'background.paper' }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
+
+      <Paper
+        elevation={0}
+        sx={{
+          p: { xs: 1, sm: 2 },
+          mb: 3,
+          borderRadius: 2,
+          bgcolor: 'background.paper',
+        }}
+      >
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          justifyContent="space-between"
+          alignItems={{ xs: 'flex-start', sm: 'center' }}
+          spacing={2}
+        >
           <Typography variant="h5" fontWeight="bold">
             Orders Management
           </Typography>
-          <Stack direction="row" spacing={1}>
+          <Stack direction="row" spacing={1} sx={{ width: { xs: '100%', sm: 'auto' } }}>
             <Tooltip title="Filter by date">
               <Button
                 variant="outlined"
                 startIcon={<FilterList />}
                 onClick={handleFilterClick}
                 size="small"
-                sx={{ borderRadius: 2 }}
+                sx={{ borderRadius: 2, width: { xs: '100%', sm: 'auto' } }}
+                fullWidth={true}
               >
                 Filters
               </Button>
@@ -225,7 +244,7 @@ const FarmerOrderList = () => {
           onClose={handleFilterClose}
           anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
           transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-          PaperProps={{ sx: { p: 2, borderRadius: 2 } }}
+          PaperProps={{ sx: { p: 2, borderRadius: 2, minWidth: 250 } }}
         >
           <Stack spacing={2}>
             <Stack direction="row" alignItems="center" spacing={1}>
@@ -240,7 +259,7 @@ const FarmerOrderList = () => {
                 InputLabelProps={{ shrink: true }}
                 value={startDate}
                 onChange={e => setStartDate(e.target.value)}
-                sx={{ minWidth: 180 }}
+                sx={{ minWidth: 120, flex: 1 }}
               />
               <TextField
                 label="End Date"
@@ -249,7 +268,7 @@ const FarmerOrderList = () => {
                 InputLabelProps={{ shrink: true }}
                 value={endDate}
                 onChange={e => setEndDate(e.target.value)}
-                sx={{ minWidth: 180 }}
+                sx={{ minWidth: 120, flex: 1 }}
               />
             </Stack>
             <Button
@@ -316,7 +335,7 @@ const FarmerOrderList = () => {
       </Paper>
 
       {filteredOrders.length === 0 ? (
-        <Paper elevation={0} sx={{ p: 4, textAlign: 'center', borderRadius: 2 }}>
+        <Paper elevation={0} sx={{ p: { xs: 2, sm: 4 }, textAlign: 'center', borderRadius: 2 }}>
           <Typography variant="h6" color="text.secondary">
             {loading ? 'Loading orders...' : 'No orders found matching your criteria'}
           </Typography>
@@ -338,13 +357,7 @@ const FarmerOrderList = () => {
                       </Typography>
                     </Stack>
                     <Stack direction="row" spacing={1}>
-                      <Chip 
-                        label={order.status} 
-                        size="small" 
-                        color={getStatusColor(order.status)}
-                        icon={getStatusIcon(order.status)}
-                        sx={{ fontWeight: 500 }}
-                      />
+                      {/* Removed order status chip */}
                       {order.payment?.status && (
                         <Chip 
                           label={order.payment.status} 
@@ -399,20 +412,27 @@ const FarmerOrderList = () => {
                         </Stack>
 
                         <Box sx={{ mt: 1, ml: 6 }}>
-                          {["Pending", "Processing", "Shipped", "OutForDelivery"].includes(item.status) ? (
-                            <Select
-                              value={item.status}
-                              onChange={e => handleUpdateItemStatus(order._id, item.product?._id, e.target.value)}
-                              size="small"
-                              fullWidth
-                              sx={{ borderRadius: 2 }}
-                            >
-                              <MenuItem value="Pending">Pending</MenuItem>
-                              <MenuItem value="Processing">Processing</MenuItem>
-                              <MenuItem value="Shipped">Shipped</MenuItem>
-                              <MenuItem value="OutForDelivery">Out for Delivery</MenuItem>
-                              <MenuItem value="Delivered">Delivered</MenuItem>
-                            </Select>
+                          {/* Allow farmer to change item status for all statuses except Delivered/Cancelled */}
+                          {["Pending", "Shipped", "OutForDelivery"].includes(item.status) ? (
+                            itemLoading[`${order._id}_${item.product?._id}`] ? (
+                              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 40 }}>
+                                <CircularProgress size={24} />
+                              </Box>
+                            ) : (
+                              <Select
+                                value={item.status}
+                                onChange={e => handleUpdateItemStatus(order._id, item.product?._id, e.target.value)}
+                                size="small"
+                                fullWidth
+                                sx={{ borderRadius: 2 }}
+                              >
+                                <MenuItem value="Pending">Pending</MenuItem>
+                                {/* <MenuItem value="Processing">Processing</MenuItem> */}
+                                <MenuItem value="Shipped">Shipped</MenuItem>
+                                <MenuItem value="OutForDelivery">Out for Delivery</MenuItem>
+                                <MenuItem value="Delivered">Delivered</MenuItem>
+                              </Select>
+                            )
                           ) : (
                             <Chip 
                               label={item.status} 
@@ -462,19 +482,6 @@ const FarmerOrderList = () => {
                     >
                       View Details
                     </Button>
-                    {order.status === "CancelRequested" && (
-                      <Button
-                        variant="contained"
-                        color="error"
-                        size="small"
-                        startIcon={<CheckCircle />}
-                        onClick={() => handleApproveCancel(order._id)}
-                        fullWidth
-                        sx={{ borderRadius: 2 }}
-                      >
-                        Approve Cancel
-                      </Button>
-                    )}
                   </Stack>
                 </CardContent>
               </Card>
@@ -485,7 +492,7 @@ const FarmerOrderList = () => {
         <Stack spacing={2}>
           {filteredOrders.map((order) => (
             <Card key={order._id} elevation={2} sx={{ borderRadius: 3 }}>
-              <CardContent>
+              <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
                 <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
                   <Stack>
                     <Typography variant="subtitle2" color="text.secondary">
@@ -497,12 +504,7 @@ const FarmerOrderList = () => {
                     </Typography>
                   </Stack>
                   <Stack direction="row" spacing={1}>
-                    <Chip 
-                      label={order.status} 
-                      size="small" 
-                      color={getStatusColor(order.status)}
-                      icon={getStatusIcon(order.status)}
-                    />
+                    {/* Removed order status chip */}
                     {order.payment?.status && (
                       <Chip 
                         label={order.payment.status} 
@@ -550,19 +552,25 @@ const FarmerOrderList = () => {
 
                       <Box sx={{ mt: 1, ml: 6 }}>
                         {["Pending", "Processing", "Shipped", "OutForDelivery"].includes(item.status) ? (
-                          <Select
-                            value={item.status}
-                            onChange={e => handleUpdateItemStatus(order._id, item.product?._id, e.target.value)}
-                            size="small"
-                            fullWidth
-                            sx={{ borderRadius: 2, mt: 1 }}
-                          >
-                            <MenuItem value="Pending">Pending</MenuItem>
-                            <MenuItem value="Processing">Processing</MenuItem>
-                            <MenuItem value="Shipped">Shipped</MenuItem>
-                            <MenuItem value="OutForDelivery">Out for Delivery</MenuItem>
-                            <MenuItem value="Delivered">Delivered</MenuItem>
-                          </Select>
+                          itemLoading[`${order._id}_${item.product?._id}`] ? (
+                            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 40 }}>
+                              <CircularProgress size={24} />
+                            </Box>
+                          ) : (
+                            <Select
+                              value={item.status}
+                              onChange={e => handleUpdateItemStatus(order._id, item.product?._id, e.target.value)}
+                              size="small"
+                              fullWidth
+                              sx={{ borderRadius: 2, mt: 1 }}
+                            >
+                              <MenuItem value="Pending">Pending</MenuItem>
+                              <MenuItem value="Processing">Processing</MenuItem>
+                              <MenuItem value="Shipped">Shipped</MenuItem>
+                              <MenuItem value="OutForDelivery">Out for Delivery</MenuItem>
+                              <MenuItem value="Delivered">Delivered</MenuItem>
+                            </Select>
+                          )
                         ) : (
                           <Chip 
                             label={item.status} 
@@ -611,19 +619,6 @@ const FarmerOrderList = () => {
                 >
                   View Details
                 </Button>
-                {order.status === "CancelRequested" && (
-                  <Button
-                    variant="contained"
-                    color="error"
-                    size="small"
-                    startIcon={<CheckCircle />}
-                    onClick={() => handleApproveCancel(order._id)}
-                    fullWidth
-                    sx={{ borderRadius: 2 }}
-                  >
-                    Approve Cancel
-                  </Button>
-                )}
               </CardContent>
             </Card>
           ))}
