@@ -13,7 +13,7 @@ import errorHandler from './middlewares/errorMiddleware.js'
 import cors from "cors"
 import {order,verify,cancel,verifyAccount} from "./controllers/paymentController.js"
 import adminRoutes from "./routes/adminRoutes.js"
-import { adminRegister } from './controllers/admincontroller.js'
+// import { adminRegister } from './controllers/admincontroller.js'
 dotenv.config()
 connectDB() 
 
@@ -38,7 +38,7 @@ app.use("/api/cart", cartRoutes)
 app.use("/api/payment",paymentRoutes)
 app.use("/api/admin", adminRoutes) 
 
-app.post('/register', adminRegister);
+// app.post('/register', adminRegister);
 
 app.use(errorHandler)
 
