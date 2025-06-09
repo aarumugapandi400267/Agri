@@ -69,7 +69,7 @@ export const loginUser = async (req, res) => {
 
     const userObj = user.toObject(); 
     delete userObj.password;
-    delete userObj.profileImage;
+    // delete userObj.profileImage;
     delete userObj.addresses;
 
     res.json({

@@ -258,20 +258,24 @@ export const approveCancel = async (req, res) => {
 };
 
 export const createAccount = async (req, res) => {
-  const { name, email, contact, ifsc, accountNumber } = req.body;
-
-  if (!name || !email || !contact || !ifsc || !accountNumber) {
+  const { holderName, bankName, email, phone, ifsc, accountNumber } = req.body;
+  console.log(req.body);
+  if (!holderName || !bankName || !ifsc || !accountNumber) {
     return res.status(400).json({ error: "All fields are required." });
   }
 
+  const farmerId = req.user._id;
+
+  const user= await User.findById(farmerId);
+  
   try {
-    // 1. Create Contact
+    // 1. Create Contact in Razorpay
     const contactRes = await axios.post(
       'https://api.razorpay.com/v1/contacts',
       {
-        name,
-        email,
-        contact,
+        name: holderName,
+        email:user.email,
+        contact:phone,
         type: 'vendor',
       },
       {
@@ -287,14 +291,14 @@ export const createAccount = async (req, res) => {
 
     const contactId = contactRes.data.id;
 
-    // 2. Create Fund Account
+    // 2. Create Fund Account in Razorpay
     const fundAccountRes = await axios.post(
       'https://api.razorpay.com/v1/fund_accounts',
       {
         contact_id: contactId,
         account_type: 'bank_account',
         bank_account: {
-          name,
+          name: holderName,
           ifsc,
           account_number: accountNumber,
         },
@@ -310,16 +314,18 @@ export const createAccount = async (req, res) => {
       }
     );
 
-    // 3. Update User's bankDetails with Razorpay IDs
+    // 3. Update User's bankDetails with all info
     await User.findByIdAndUpdate(
       req.user._id,
       {
         $set: {
-          "bankDetails.razorpayContactId": contactId,
-          "bankDetails.razorpayFundAccountId": fundAccountRes.data.id,
-          "bankDetails.accountHolderName": name,
+          "bankDetails.accountHolderName": holderName,
+          "bankDetails.contact": phone,
+          "bankDetails.bankName": bankName,
           "bankDetails.accountNumber": accountNumber,
           "bankDetails.ifsc": ifsc,
+          "bankDetails.razorpayContactId": contactId,
+          "bankDetails.razorpayFundAccountId": fundAccountRes.data.id,
         }
       },
       { new: true }

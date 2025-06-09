@@ -74,3 +74,13 @@ export const updateItemStatus = (orderId, itemId, status) => async () => {
     return { error: error.response?.data || error.message };
   }
 }
+
+export const createAccount = (accountData) => async () => {
+  try {
+    const { data } = await api.createAccount(accountData);
+    return data;
+  } catch (error) {
+    console.error('Create Account failed:', error.response?.data || error.message);
+    return { error: error.response?.data || error.message };
+  }
+}

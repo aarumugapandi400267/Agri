@@ -1,40 +1,84 @@
 /* eslint-disable no-unused-vars */
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from "react";
 import {
-  Typography, Box, Tabs, Tab, Card, CardContent, Grid, Button, Divider,
-  Dialog, DialogTitle, DialogContent, DialogActions, Snackbar, Alert,
-  Avatar, Paper, Chip, CircularProgress, TextField
-} from '@mui/material';
+  Typography,
+  Box,
+  Tabs,
+  Tab,
+  Card,
+  CardContent,
+  Grid,
+  Button,
+  Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Snackbar,
+  Alert,
+  Avatar,
+  Paper,
+  Chip,
+  CircularProgress,
+  TextField,
+} from "@mui/material";
 import {
-  PersonOutline, LocationOnOutlined, SettingsOutlined,
-  AnalyticsOutlined, ShoppingBagOutlined, Edit, Add,
-  LocationOff, Home, Phone, Delete, Receipt, Paid,
-  RateReview, Favorite, Category, ShoppingBag
-} from '@mui/icons-material';
-import { useDispatch, useSelector } from 'react-redux';
-import { getUser } from '../../../actions/user';
-import { getCustomerOrders, cancelOrder, cancelItem } from '../../../actions/order';
-import { updateUser } from '../../../actions/user';
-import { verifyPayment } from '../../../actions/customer/order'; // Adjust path if needed
+  PersonOutline,
+  LocationOnOutlined,
+  SettingsOutlined,
+  AnalyticsOutlined,
+  ShoppingBagOutlined,
+  Edit,
+  Add,
+  LocationOff,
+  Home,
+  Phone,
+  Delete,
+  Receipt,
+  Paid,
+  RateReview,
+  Favorite,
+  Category,
+  ShoppingBag,
+} from "@mui/icons-material";
+import { useDispatch, useSelector } from "react-redux";
+import { getUser } from "../../../actions/user";
+import {
+  getCustomerOrders,
+  cancelOrder,
+  cancelItem,
+} from "../../../actions/order";
+import { updateUser } from "../../../actions/user";
+import { verifyPayment } from "../../../actions/customer/order"; // Adjust path if needed
 
 // Helper functions
 const getStatusColor = (status) => {
-  switch(status) {
-    case 'Delivered': return '#4caf50';
-    case 'Shipped': return '#2196f3';
-    case 'Processing': return '#ff9800';
-    case 'CancelRequested': return '#f44336';
-    default: return '#9e9e9e';
+  switch (status) {
+    case "Delivered":
+      return "#4caf50";
+    case "Shipped":
+      return "#2196f3";
+    case "Processing":
+      return "#ff9800";
+    case "CancelRequested":
+      return "#f44336";
+    default:
+      return "#9e9e9e";
   }
 };
 
 const getStatusChipColor = (status) => {
-  switch(status) {
-    case 'Delivered': return 'success';
-    case 'Shipped': return 'info';
-    case 'Processing': return 'warning';
-    case 'CancelRequested': return 'error';
-    default: return 'default';
+  switch (status) {
+    case "Delivered":
+      return "success";
+    case "Shipped":
+      return "info";
+    case "Processing":
+      return "warning";
+    case "CancelRequested":
+      return "error";
+    default:
+      return "default";
   }
 };
 
@@ -44,7 +88,7 @@ function ProfileTab({ user, onUpdateProfile }) {
     name: user?.name || "",
     email: user?.email || "",
     image: null,
-    preview: user?.profileImage || ""
+    preview: user?.profileImage || "",
   });
   const fileInputRef = useRef();
 
@@ -62,7 +106,7 @@ function ProfileTab({ user, onUpdateProfile }) {
       setEditData({
         ...editData,
         image: file,
-        preview: URL.createObjectURL(file)
+        preview: URL.createObjectURL(file),
       });
     }
   };
@@ -81,7 +125,7 @@ function ProfileTab({ user, onUpdateProfile }) {
       name: user?.name || "",
       email: user?.email || "",
       image: null,
-      preview: user?.profileImage || ""
+      preview: user?.profileImage || "",
     });
   }, [user]);
 
@@ -90,30 +134,46 @@ function ProfileTab({ user, onUpdateProfile }) {
       <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
         Profile Information
       </Typography>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+      <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
         <Avatar
-          sx={{ width: 80, height: 80, mr: 3, cursor: 'pointer' }}
+          sx={{ width: 80, height: 80, mr: 3, cursor: "pointer" }}
           src={user?.profileImage}
           onClick={handleEditOpen}
         >
           {user?.name?.charAt(0)}
         </Avatar>
         <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>{user?.name}</Typography>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            {user?.name}
+          </Typography>
           <Typography color="text.secondary">{user?.email}</Typography>
         </Box>
       </Box>
       <Grid container spacing={2}>
         <Grid item xs={12} md={6}>
-          <Paper elevation={0} sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 2 }}>
-            <Typography variant="subtitle2" color="text.secondary">Member Since</Typography>
-            <Typography>{new Date(user?.createdAt).toLocaleDateString()}</Typography>
+          <Paper
+            elevation={0}
+            sx={{ p: 2, bgcolor: "grey.50", borderRadius: 2 }}
+          >
+            <Typography variant="subtitle2" color="text.secondary">
+              Member Since
+            </Typography>
+            <Typography>
+              {new Date(user?.createdAt).toLocaleDateString()}
+            </Typography>
           </Paper>
         </Grid>
         <Grid item xs={12} md={6}>
-          <Paper elevation={0} sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 2 }}>
-            <Typography variant="subtitle2" color="text.secondary">Last Login</Typography>
-            <Typography>{new Date(user?.lastLogin).toLocaleString()}</Typography>
+          <Paper
+            elevation={0}
+            sx={{ p: 2, bgcolor: "grey.50", borderRadius: 2 }}
+          >
+            <Typography variant="subtitle2" color="text.secondary">
+              Last Login
+            </Typography>
+            <Typography>
+              {new Date(user?.lastLogin).toLocaleString()}
+            </Typography>
           </Paper>
         </Grid>
       </Grid>
@@ -128,9 +188,16 @@ function ProfileTab({ user, onUpdateProfile }) {
       <Dialog open={editOpen} onClose={handleEditClose}>
         <DialogTitle>Edit Profile</DialogTitle>
         <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2 }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              mb: 2,
+            }}
+          >
             <Avatar
-              sx={{ width: 80, height: 80, mb: 2, cursor: 'pointer' }}
+              sx={{ width: 80, height: 80, mb: 2, cursor: "pointer" }}
               src={editData.preview}
               onClick={handleAvatarClick}
             >
@@ -140,7 +207,7 @@ function ProfileTab({ user, onUpdateProfile }) {
               type="file"
               accept="image/*"
               ref={fileInputRef}
-              style={{ display: 'none' }}
+              style={{ display: "none" }}
               onChange={handleImageChange}
             />
             <Button variant="text" onClick={handleAvatarClick}>
@@ -210,71 +277,86 @@ function AddressTab({ user }) {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h5" sx={{ fontWeight: 600 }}>Saved Addresses</Typography>
-        <Button 
-          variant="contained" 
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
+        }}
+      >
+        <Typography variant="h5" sx={{ fontWeight: 600 }}>
+          Saved Addresses
+        </Typography>
+        <Button
+          variant="contained"
           startIcon={<Add />}
           onClick={handleOpenDialog}
         >
           Add New Address
         </Button>
       </Box>
-      
+
       {(user?.addresses || []).length === 0 ? (
-        <Paper elevation={0} sx={{ p: 4, textAlign: 'center', bgcolor: 'grey.50' }}>
-          <LocationOff sx={{ fontSize: 60, color: 'grey.400', mb: 2 }} />
+        <Paper
+          elevation={0}
+          sx={{ p: 4, textAlign: "center", bgcolor: "grey.50" }}
+        >
+          <LocationOff sx={{ fontSize: 60, color: "grey.400", mb: 2 }} />
           <Typography color="text.secondary">No addresses saved yet</Typography>
-          <Button variant="text" sx={{ mt: 2 }} onClick={handleOpenDialog}>Add your first address</Button>
+          <Button variant="text" sx={{ mt: 2 }} onClick={handleOpenDialog}>
+            Add your first address
+          </Button>
         </Paper>
       ) : (
         <Grid container spacing={3}>
           {(user?.addresses || []).map((addr, idx) => (
             <Grid item xs={12} md={6} key={idx}>
-              <Card 
-                sx={{ 
-                  height: '100%',
-                  border: addr.isDefault ? '2px solid' : '1px solid',
-                  borderColor: addr.isDefault ? 'primary.main' : 'divider',
-                  position: 'relative'
+              <Card
+                sx={{
+                  height: "100%",
+                  border: addr.isDefault ? "2px solid" : "1px solid",
+                  borderColor: addr.isDefault ? "primary.main" : "divider",
+                  position: "relative",
                 }}
               >
                 {addr.isDefault && (
-                  <Chip 
+                  <Chip
                     label="Default"
                     color="primary"
                     size="small"
-                    sx={{ position: 'absolute', top: 16, right: 16 }}
+                    sx={{ position: "absolute", top: 16, right: 16 }}
                   />
                 )}
                 <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <Home sx={{ mr: 1, color: 'primary.main' }} />
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                    <Home sx={{ mr: 1, color: "primary.main" }} />
                     <Typography fontWeight={600}>{addr.name}</Typography>
                   </Box>
                   <Typography sx={{ mb: 1 }}>
-                    {addr.addressLine1}{addr.addressLine2 ? `, ${addr.addressLine2}` : ''}
+                    {addr.addressLine1}
+                    {addr.addressLine2 ? `, ${addr.addressLine2}` : ""}
                   </Typography>
                   <Typography sx={{ mb: 1 }}>
                     {addr.city}, {addr.state}, {addr.postalCode}
                   </Typography>
                   <Typography sx={{ mb: 2 }}>{addr.country}</Typography>
-                  
+
                   <Typography variant="body2" color="text.secondary">
                     <Phone sx={{ fontSize: 14, mr: 0.5 }} /> {addr.phone}
                   </Typography>
-                  
-                  <Box sx={{ display: 'flex', gap: 1, mt: 3 }}>
-                    <Button 
-                      variant="outlined" 
+
+                  <Box sx={{ display: "flex", gap: 1, mt: 3 }}>
+                    <Button
+                      variant="outlined"
                       size="small"
                       startIcon={<Edit />}
                     >
                       Edit
                     </Button>
                     {!addr.isDefault && (
-                      <Button 
-                        variant="text" 
+                      <Button
+                        variant="text"
                         size="small"
                         color="error"
                         startIcon={<Delete />}
@@ -359,13 +441,17 @@ function AddressTab({ user }) {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog} disabled={saving}>Cancel</Button>
-          <Button 
-            onClick={handleSaveAddress} 
-            variant="contained" 
+          <Button onClick={handleCloseDialog} disabled={saving}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSaveAddress}
+            variant="contained"
             color="primary"
             disabled={saving}
-            startIcon={saving ? <CircularProgress size={18} color="inherit" /> : null}
+            startIcon={
+              saving ? <CircularProgress size={18} color="inherit" /> : null
+            }
           >
             {saving ? "Saving..." : "Save"}
           </Button>
@@ -384,10 +470,13 @@ function SettingsTab() {
       <Typography color="text.secondary" sx={{ mb: 3 }}>
         Manage your account preferences and security settings
       </Typography>
-      
+
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
-          <Paper elevation={0} sx={{ p: 3, bgcolor: 'grey.50', borderRadius: 2 }}>
+          <Paper
+            elevation={0}
+            sx={{ p: 3, bgcolor: "grey.50", borderRadius: 2 }}
+          >
             <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>
               Change Password
             </Typography>
@@ -397,7 +486,10 @@ function SettingsTab() {
           </Paper>
         </Grid>
         <Grid item xs={12} md={6}>
-          <Paper elevation={0} sx={{ p: 3, bgcolor: 'grey.50', borderRadius: 2 }}>
+          <Paper
+            elevation={0}
+            sx={{ p: 3, bgcolor: "grey.50", borderRadius: 2 }}
+          >
             <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>
               Notification Preferences
             </Typography>
@@ -407,7 +499,10 @@ function SettingsTab() {
           </Paper>
         </Grid>
         <Grid item xs={12}>
-          <Paper elevation={0} sx={{ p: 3, bgcolor: 'grey.50', borderRadius: 2 }}>
+          <Paper
+            elevation={0}
+            sx={{ p: 3, bgcolor: "grey.50", borderRadius: 2 }}
+          >
             <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>
               Delete Account
             </Typography>
@@ -429,45 +524,72 @@ function StatsTab({ orders }) {
   const totalSpent = orders.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
   const reviewsGiven = 0;
   const wishlistItems = 0;
-  
+
   const categoryCount = {};
-  orders.forEach(order => {
-    (order.products || []).forEach(item => {
+  orders.forEach((order) => {
+    (order.products || []).forEach((item) => {
       const cat = item.product?.category || "Unknown";
       categoryCount[cat] = (categoryCount[cat] || 0) + 1;
     });
   });
-  const favoriteCategory = Object.entries(categoryCount).sort((a, b) => b[1] - a[1])[0]?.[0] || "N/A";
+  const favoriteCategory =
+    Object.entries(categoryCount).sort((a, b) => b[1] - a[1])[0]?.[0] || "N/A";
 
   return (
     <Box>
-      <Typography variant="h5" sx={{ fontWeight: 600, mb: 3 }}>Shopping Statistics</Typography>
-      
+      <Typography variant="h5" sx={{ fontWeight: 600, mb: 3 }}>
+        Shopping Statistics
+      </Typography>
+
       <Grid container spacing={3}>
         {[
-          { value: totalOrders, label: 'Total Orders', icon: <Receipt />, color: 'primary' },
-          { value: `₹${totalSpent}`, label: 'Total Spent', icon: <Paid />, color: 'success' },
-          { value: reviewsGiven, label: 'Reviews', icon: <RateReview />, color: 'warning' },
-          { value: wishlistItems, label: 'Wishlist', icon: <Favorite />, color: 'error' }
+          {
+            value: totalOrders,
+            label: "Total Orders",
+            icon: <Receipt />,
+            color: "primary",
+          },
+          {
+            value: `₹${totalSpent}`,
+            label: "Total Spent",
+            icon: <Paid />,
+            color: "success",
+          },
+          {
+            value: reviewsGiven,
+            label: "Reviews",
+            icon: <RateReview />,
+            color: "warning",
+          },
+          {
+            value: wishlistItems,
+            label: "Wishlist",
+            icon: <Favorite />,
+            color: "error",
+          },
         ].map((stat, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
-            <Card sx={{ height: '100%' }}>
-              <CardContent sx={{ display: 'flex', alignItems: 'center' }}>
-                <Box sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 56,
-                  height: 56,
-                  borderRadius: '50%',
-                  bgcolor: `${stat.color}.light`,
-                  color: `${stat.color}.dark`,
-                  mr: 3
-                }}>
+            <Card sx={{ height: "100%" }}>
+              <CardContent sx={{ display: "flex", alignItems: "center" }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 56,
+                    height: 56,
+                    borderRadius: "50%",
+                    bgcolor: `${stat.color}.light`,
+                    color: `${stat.color}.dark`,
+                    mr: 3,
+                  }}
+                >
                   {stat.icon}
                 </Box>
                 <Box>
-                  <Typography variant="h4" fontWeight={700}>{stat.value}</Typography>
+                  <Typography variant="h4" fontWeight={700}>
+                    {stat.value}
+                  </Typography>
                   <Typography color="text.secondary">{stat.label}</Typography>
                 </Box>
               </CardContent>
@@ -475,17 +597,21 @@ function StatsTab({ orders }) {
           </Grid>
         ))}
       </Grid>
-      
+
       <Card sx={{ mt: 3 }}>
         <CardContent>
-          <Typography variant="h6" sx={{ mb: 2 }}>Favorite Category</Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Category sx={{ fontSize: 40, color: 'primary.main', mr: 2 }} />
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Favorite Category
+          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Category sx={{ fontSize: 40, color: "primary.main", mr: 2 }} />
             <Box>
               <Typography variant="h4" color="primary" fontWeight={700}>
                 {favoriteCategory}
               </Typography>
-              <Typography color="text.secondary">Most purchased category</Typography>
+              <Typography color="text.secondary">
+                Most purchased category
+              </Typography>
             </Box>
           </Box>
         </CardContent>
@@ -498,7 +624,11 @@ function OrdersTab({ orders, onCancel, onCancelItem }) {
   const dispatch = useDispatch();
   const [payingOrderId, setPayingOrderId] = useState(null);
   const [payLoading, setPayLoading] = useState(false);
-  const [alert, setAlert] = useState({ open: false, message: "", severity: "success" });
+  const [alert, setAlert] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [selectedItemId, setSelectedItemId] = useState(null);
@@ -508,14 +638,14 @@ function OrdersTab({ orders, onCancel, onCancelItem }) {
   const shouldShowItemStatuses = (order) => {
     if (!order.products || order.products.length <= 1) return false;
     // If any item status differs from order status, show item statuses
-    return order.products.some(item => item.status !== order.status);
+    return order.products.some((item) => item.status !== order.status);
   };
 
   // Helper: Should show only order status?
   const shouldShowOnlyOrderStatus = (order) => {
     if (!order.products || order.products.length === 0) return true;
     // All items same as order status
-    return order.products.every(item => item.status === order.status);
+    return order.products.every((item) => item.status === order.status);
   };
 
   const handleCancelClick = (orderId) => {
@@ -535,10 +665,18 @@ function OrdersTab({ orders, onCancel, onCancelItem }) {
     try {
       if (isItemCancel && selectedOrderId && selectedItemId) {
         await onCancelItem(selectedOrderId, selectedItemId);
-        setAlert({ open: true, message: "Item cancellation requested.", severity: "success" });
+        setAlert({
+          open: true,
+          message: "Item cancellation requested.",
+          severity: "success",
+        });
       } else if (selectedOrderId) {
         await onCancel(selectedOrderId);
-        setAlert({ open: true, message: "Order cancellation requested.", severity: "success" });
+        setAlert({
+          open: true,
+          message: "Order cancellation requested.",
+          severity: "success",
+        });
       }
     } catch (err) {
       setAlert({ open: true, message: err.message, severity: "error" });
@@ -563,9 +701,17 @@ function OrdersTab({ orders, onCancel, onCancelItem }) {
       const paymentData = { orderId: order._id, amount: order.totalPrice };
       const result = await dispatch(verifyPayment(paymentData));
       if (result && !result.error) {
-        setAlert({ open: true, message: "Payment successful!", severity: "success" });
+        setAlert({
+          open: true,
+          message: "Payment successful!",
+          severity: "success",
+        });
       } else {
-        setAlert({ open: true, message: result.error || "Payment failed.", severity: "error" });
+        setAlert({
+          open: true,
+          message: result.error || "Payment failed.",
+          severity: "error",
+        });
       }
     } catch (err) {
       setAlert({ open: true, message: "Payment failed.", severity: "error" });
@@ -576,11 +722,15 @@ function OrdersTab({ orders, onCancel, onCancelItem }) {
 
   return (
     <Box>
-      <Typography variant="h5" sx={{ fontWeight: 600, mb: 3 }}>Order History</Typography>
+      <Typography variant="h5" sx={{ fontWeight: 600, mb: 3 }}>
+        Order History
+      </Typography>
       {orders.length === 0 ? (
-        <Paper elevation={0} sx={{ p: 4, textAlign: 'center' }}>
-          <ShoppingBag sx={{ fontSize: 60, color: 'grey.400', mb: 2 }} />
-          <Typography variant="h6" sx={{ mb: 1 }}>No orders yet</Typography>
+        <Paper elevation={0} sx={{ p: 4, textAlign: "center" }}>
+          <ShoppingBag sx={{ fontSize: 60, color: "grey.400", mb: 2 }} />
+          <Typography variant="h6" sx={{ mb: 1 }}>
+            No orders yet
+          </Typography>
           <Typography color="text.secondary" sx={{ mb: 3 }}>
             You haven't placed any orders yet. Start shopping to see them here!
           </Typography>
@@ -590,23 +740,27 @@ function OrdersTab({ orders, onCancel, onCancelItem }) {
         </Paper>
       ) : (
         orders.map((order) => (
-          <Card 
-            key={order._id} 
-            sx={{ 
-              mb: 3, 
+          <Card
+            key={order._id}
+            sx={{
+              mb: 3,
               borderLeft: `4px solid ${getStatusColor(order.status)}`,
-              '&:hover': { boxShadow: 2 }
+              "&:hover": { boxShadow: 2 },
             }}
           >
             <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                <Typography fontWeight={700}>Order #{order._id.slice(-8).toUpperCase()}</Typography>
-                <Chip 
-                  label={order.status} 
+              <Box
+                sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}
+              >
+                <Typography fontWeight={700}>
+                  Order #{order._id.slice(-8).toUpperCase()}
+                </Typography>
+                {/* <Chip
+                  label={order.status}
                   size="small"
                   color={getStatusChipColor(order.status)}
                   variant="outlined"
-                />
+                /> */}
               </Box>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Placed on {new Date(order.createdAt).toLocaleDateString()}
@@ -614,121 +768,152 @@ function OrdersTab({ orders, onCancel, onCancelItem }) {
               <Divider sx={{ my: 2 }} />
 
               {/* Show item statuses if needed */}
-              {shouldShowItemStatuses(order) ? (
-                (order.products || []).map((item, i) => (
-                  <Box 
-                    key={i} 
-                    sx={{ 
-                      display: 'flex', 
-                      mb: 2,
-                      p: 2,
-                      bgcolor: 'grey.50',
-                      borderRadius: 1
-                    }}
-                  >
-                    <Avatar 
-                      src={item.product?.image} 
-                      variant="rounded"
-                      sx={{ width: 64, height: 64, mr: 2 }}
+              {shouldShowItemStatuses(order)
+                ? (order.products || []).map((item, i) => (
+                    <Box
+                      key={i}
+                      sx={{
+                        display: "flex",
+                        mb: 2,
+                        p: 2,
+                        bgcolor: "grey.50",
+                        borderRadius: 1,
+                      }}
                     >
-                      {item.product?.name?.charAt(0)}
-                    </Avatar>
-                    <Box sx={{ flexGrow: 1 }}>
-                      <Typography fontWeight={600}>{item.product?.name}</Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {item.quantity} × ₹{item.price} = ₹{item.subtotal}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Farmer: {item.farmer?.name}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Status:{" "}
-                        <Chip
-                          label={item.status}
-                          size="small"
-                          color={getStatusChipColor(item.status)}
-                          sx={{ fontWeight: 600 }}
-                        />
-                      </Typography>
-                    </Box>
-                    {item.status !== "Delivered" && item.status !== "Cancelled" && item.status !== "CancelRequested" && (
-                      <Button
-                        variant="outlined"
-                        color="error"
-                        size="small"
-                        onClick={() => handleItemCancelClick(order._id, item.product?._id)}
-                        sx={{ alignSelf: 'center' }}
+                      {console.log(item?.product?.image?.data)}
+                      <Avatar
+                        src={
+                          item?.product?.image?.data
+                            ? `data:${item?.product?.image.contentType};base64,${item?.product?.image.data}`
+                            : "/placeholder.jpg"
+                        }
+                        variant="rounded"
+                        sx={{ width: 64, height: 64, mr: 2 }}
                       >
-                        Cancel Item
-                      </Button>
-                    )}
-                  </Box>
-                ))
-              ) : (
-                // Show only order status and items (no item status chips)
-                (order.products || []).map((item, i) => (
-                  <Box 
-                    key={i} 
-                    sx={{ 
-                      display: 'flex', 
-                      mb: 2,
-                      p: 2,
-                      bgcolor: 'grey.50',
-                      borderRadius: 1
-                    }}
-                  >
-                    <Avatar 
-                      src={item.product?.image} 
-                      variant="rounded"
-                      sx={{ width: 64, height: 64, mr: 2 }}
+                        {item.product?.name?.charAt(0)}
+                      </Avatar>
+                      <Box sx={{ flexGrow: 1 }}>
+                        <Typography fontWeight={600}>
+                          {item.product?.name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {item.quantity} × ₹{item.product.price} = ₹
+                          {item.subtotal}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Farmer: {item.farmer?.name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Status:{" "}
+                          <Chip
+                            label={item.status}
+                            size="small"
+                            color={getStatusChipColor(item.status)}
+                            sx={{ fontWeight: 600 }}
+                          />
+                        </Typography>
+                      </Box>
+                      {item.status !== "Delivered" &&
+                        item.status !== "Cancelled" &&
+                        item.status !== "CancelRequested" && (
+                          <Button
+                            variant="outlined"
+                            color="error"
+                            size="small"
+                            onClick={() =>
+                              handleItemCancelClick(
+                                order._id,
+                                item.product?._id
+                              )
+                            }
+                            sx={{ alignSelf: "center" }}
+                          >
+                            Cancel Item
+                          </Button>
+                        )}
+                    </Box>
+                  ))
+                : // Show only order status and items (no item status chips)
+                  (order.products || []).map((item, i) => (
+                    <Box
+                      key={i}
+                      sx={{
+                        display: "flex",
+                        mb: 2,
+                        p: 2,
+                        bgcolor: "grey.50",
+                        borderRadius: 1,
+                      }}
                     >
-                      {item.product?.name?.charAt(0)}
-                    </Avatar>
-                    <Box sx={{ flexGrow: 1 }}>
-                      <Typography fontWeight={600}>{item.product?.name}</Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {item.quantity} × ₹{item.price} = ₹{item.subtotal}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Farmer: {item.farmer?.name}
-                      </Typography>
-                    </Box>
-                    {item.status !== "Delivered" && item.status !== "Cancelled" && item.status !== "CancelRequested" && (
-                      <Button
-                        variant="outlined"
-                        color="error"
-                        size="small"
-                        onClick={() => handleItemCancelClick(order._id, item.product?._id)}
-                        sx={{ alignSelf: 'center' }}
+                      <Avatar
+                        src={item.product?.image}
+                        variant="rounded"
+                        sx={{ width: 64, height: 64, mr: 2 }}
                       >
-                        Cancel Item
-                      </Button>
-                    )}
-                  </Box>
-                ))
-              )}
+                        {item.product?.name?.charAt(0)}
+                      </Avatar>
+                      <Box sx={{ flexGrow: 1 }}>
+                        <Typography fontWeight={600}>
+                          {item.product?.name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {item.quantity} × ₹{item.price} = ₹{item.subtotal}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Farmer: {item.farmer?.name}
+                        </Typography>
+                      </Box>
+                      {item.status !== "Delivered" &&
+                        item.status !== "Cancelled" &&
+                        item.status !== "CancelRequested" && (
+                          <Button
+                            variant="outlined"
+                            color="error"
+                            size="small"
+                            onClick={() =>
+                              handleItemCancelClick(
+                                order._id,
+                                item.product?._id
+                              )
+                            }
+                            sx={{ alignSelf: "center" }}
+                          >
+                            Cancel Item
+                          </Button>
+                        )}
+                    </Box>
+                  ))}
 
               <Divider sx={{ my: 2 }} />
-              <Box sx={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center',
-                mt: 2
-              }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mt: 2,
+                }}
+              >
                 <Typography variant="h6">
-                  Total: <Typography component="span" fontWeight={700}>₹{order.totalPrice}</Typography>
+                  Total:{" "}
+                  <Typography component="span" fontWeight={700}>
+                    ₹{order.totalPrice}
+                  </Typography>
                 </Typography>
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  {order.payment?.status !== "Completed" && order.payment?.status !== "paid" && order?.status!=="Cancelled" && (
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={() => handlePayNow(order)}
-                      disabled={payLoading && payingOrderId === order._id}
-                    >
-                      {payLoading && payingOrderId === order._id ? "Processing..." : "Pay Now"}
-                    </Button>
-                  )}
+                <Box sx={{ display: "flex", gap: 1 }}>
+                  {order.payment?.status !== "Completed" &&
+                    order.payment?.status !== "paid" &&
+                    order?.status !== "Cancelled" && (
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => handlePayNow(order)}
+                        disabled={payLoading && payingOrderId === order._id}
+                      >
+                        {payLoading && payingOrderId === order._id
+                          ? "Processing..."
+                          : "Pay Now"}
+                      </Button>
+                    )}
                   {/* Uncomment below to allow order-level cancel if needed */}
                   {/* {order.status !== "Delivered" && order.status !== "CancelRequested" && order?.status!=="Cancelled" && (
                     <Button
@@ -757,9 +942,9 @@ function OrdersTab({ orders, onCancel, onCancelItem }) {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCancelDialogClose}>No, Keep It</Button>
-          <Button 
-            onClick={handleConfirmCancel} 
-            color="error" 
+          <Button
+            onClick={handleConfirmCancel}
+            color="error"
             variant="contained"
           >
             Yes, Request Cancel
@@ -775,7 +960,7 @@ function OrdersTab({ orders, onCancel, onCancelItem }) {
         <Alert
           onClose={() => setAlert({ ...alert, open: false })}
           severity={alert.severity}
-          sx={{ width: '100%' }}
+          sx={{ width: "100%" }}
         >
           {alert.message}
         </Alert>
@@ -786,26 +971,33 @@ function OrdersTab({ orders, onCancel, onCancelItem }) {
 
 export default function ProfilePage() {
   const dispatch = useDispatch();
-  const user = useSelector(state => state.authenticationReducer.AuthData || {});
+  const user = useSelector(
+    (state) => state.authenticationReducer.AuthData || {}
+  );
   const [tab, setTab] = useState(0);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [alert, setAlert] = useState({ open: false, message: "", severity: "success" });
+  const [alert, setAlert] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
   const [profileLoading, setProfileLoading] = useState(false);
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([
-      dispatch(getUser()),
-      dispatch(getCustomerOrders())
-    ])
-    .then(([userRes, ordersRes]) => {
-      setOrders(ordersRes || []);
-    })
-    .catch(err => {
-      setAlert({ open: true, message: "Failed to load profile data", severity: "error" });
-    })
-    .finally(() => setLoading(false));
+    Promise.all([dispatch(getUser()), dispatch(getCustomerOrders())])
+      .then(([userRes, ordersRes]) => {
+        setOrders(ordersRes || []);
+      })
+      .catch((err) => {
+        setAlert({
+          open: true,
+          message: "Failed to load profile data",
+          severity: "error",
+        });
+      })
+      .finally(() => setLoading(false));
   }, [dispatch]);
 
   // Update profile handler using dispatch (like farmer's profile)
@@ -820,10 +1012,18 @@ export default function ProfilePage() {
         formData.append("profileImage", data.image);
       }
       await dispatch(updateUser(formData));
-      setAlert({ open: true, message: "Profile updated successfully.", severity: "success" });
+      setAlert({
+        open: true,
+        message: "Profile updated successfully.",
+        severity: "success",
+      });
       dispatch(getUser());
     } catch {
-      setAlert({ open: true, message: "Failed to update profile.", severity: "error" });
+      setAlert({
+        open: true,
+        message: "Failed to update profile.",
+        severity: "error",
+      });
     }
     setProfileLoading(false);
   };
@@ -831,41 +1031,61 @@ export default function ProfilePage() {
   const handleCancelOrder = async (orderId) => {
     try {
       await dispatch(cancelOrder(orderId));
-      setAlert({ open: true, message: "Order cancellation requested.", severity: "success" });
-      dispatch(getCustomerOrders()).then(res => {
+      setAlert({
+        open: true,
+        message: "Order cancellation requested.",
+        severity: "success",
+      });
+      dispatch(getCustomerOrders()).then((res) => {
         setOrders(res || []);
       });
     } catch {
-      setAlert({ open: true, message: "Failed to request order cancellation.", severity: "error" });
+      setAlert({
+        open: true,
+        message: "Failed to request order cancellation.",
+        severity: "error",
+      });
     }
   };
 
   const handleCancelItem = async (orderId, itemId) => {
     try {
       await dispatch(cancelItem(orderId, itemId));
-      setAlert({ open: true, message: "Item cancellation requested.", severity: "success" });
-      dispatch(getCustomerOrders()).then(res => {
+      setAlert({
+        open: true,
+        message: "Item cancellation requested.",
+        severity: "success",
+      });
+      dispatch(getCustomerOrders()).then((res) => {
         setOrders(res || []);
       });
     } catch {
-      setAlert({ open: true, message: "Failed to request item cancellation.", severity: "error" });
+      setAlert({
+        open: true,
+        message: "Failed to request item cancellation.",
+        severity: "error",
+      });
     }
   };
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 10 }}>
         <CircularProgress />
       </Box>
     );
   }
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: 'auto', p: { xs: 2, md: 3 } }}>
-      <Typography variant="h4" textAlign="center" sx={{ mb: 4, fontWeight: 700 }}>
+    <Box sx={{ maxWidth: 1200, mx: "auto", p: { xs: 2, md: 3 } }}>
+      <Typography
+        variant="h4"
+        textAlign="center"
+        sx={{ mb: 4, fontWeight: 700 }}
+      >
         My Account
       </Typography>
-      
+
       <Tabs
         value={tab}
         onChange={(_, v) => setTab(v)}
@@ -874,46 +1094,48 @@ export default function ProfilePage() {
         allowScrollButtonsMobile
         sx={{
           mb: 4,
-          '& .MuiTabs-indicator': {
+          "& .MuiTabs-indicator": {
             height: 4,
-            borderRadius: '4px 4px 0 0'
-          }
+            borderRadius: "4px 4px 0 0",
+          },
         }}
       >
-        <Tab 
-          label="Profile" 
-          icon={<PersonOutline />} 
-          iconPosition="start" 
-          sx={{ minHeight: 60 }} 
+        <Tab
+          label="Profile"
+          icon={<PersonOutline />}
+          iconPosition="start"
+          sx={{ minHeight: 60 }}
         />
-        <Tab 
-          label="Addresses" 
-          icon={<LocationOnOutlined />} 
-          iconPosition="start" 
-          sx={{ minHeight: 60 }} 
+        <Tab
+          label="Addresses"
+          icon={<LocationOnOutlined />}
+          iconPosition="start"
+          sx={{ minHeight: 60 }}
         />
-        <Tab 
-          label="Settings" 
-          icon={<SettingsOutlined />} 
-          iconPosition="start" 
-          sx={{ minHeight: 60 }} 
+        <Tab
+          label="Settings"
+          icon={<SettingsOutlined />}
+          iconPosition="start"
+          sx={{ minHeight: 60 }}
         />
-        <Tab 
-          label="Statistics" 
-          icon={<AnalyticsOutlined />} 
-          iconPosition="start" 
-          sx={{ minHeight: 60 }} 
+        <Tab
+          label="Statistics"
+          icon={<AnalyticsOutlined />}
+          iconPosition="start"
+          sx={{ minHeight: 60 }}
         />
-        <Tab 
-          label="Orders" 
-          icon={<ShoppingBagOutlined />} 
-          iconPosition="start" 
-          sx={{ minHeight: 60 }} 
+        <Tab
+          label="Orders"
+          icon={<ShoppingBagOutlined />}
+          iconPosition="start"
+          sx={{ minHeight: 60 }}
         />
       </Tabs>
-      
+
       <Box>
-        {tab === 0 && <ProfileTab user={user} onUpdateProfile={handleUpdateProfile} />}
+        {tab === 0 && (
+          <ProfileTab user={user} onUpdateProfile={handleUpdateProfile} />
+        )}
         {tab === 1 && <AddressTab user={user} />}
         {tab === 2 && <SettingsTab />}
         {tab === 3 && <StatsTab orders={orders} />}
@@ -925,7 +1147,7 @@ export default function ProfilePage() {
           />
         )}
       </Box>
-      
+
       <Snackbar
         open={alert.open}
         autoHideDuration={3000}
@@ -935,7 +1157,7 @@ export default function ProfilePage() {
         <Alert
           onClose={() => setAlert({ ...alert, open: false })}
           severity={alert.severity}
-          sx={{ width: '100%' }}
+          sx={{ width: "100%" }}
         >
           {alert.message}
         </Alert>

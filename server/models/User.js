@@ -2,14 +2,14 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
 const addressSchema = new mongoose.Schema({
-   name: { type: String, required: true },
+  name: { type: String, required: true },
   phone: { type: String, required: true },
   addressLine1: { type: String, required: true },
   addressLine2: { type: String },
   city: { type: String, required: true },
   state: { type: String, required: true },
   postalCode: { type: String, required: true },
-  country: { type: String, required: true, default: "India" }
+  country: { type: String, required: true, default: "India" },
 });
 
 const userSchema = new mongoose.Schema(
@@ -34,7 +34,10 @@ const userSchema = new mongoose.Schema(
     // Add these fields for farmers (optional for customers)
     bankDetails: {
       accountHolderName: { type: String },
+      bankName: { type: String }, // <-- Add this line
+      contact: { type: String }, // <-- Add this line
       accountNumber: { type: String },
+      contact:{type:String},
       ifsc: { type: String },
       upiId: { type: String }, // optional
       razorpayContactId: { type: String }, // after creating contact in Razorpay

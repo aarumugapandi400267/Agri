@@ -11,6 +11,7 @@ import cartRoutes from "./routes/customer/cart.js"
 import paymentRoutes from "./routes/paymentRoutes.js"
 import errorHandler from './middlewares/errorMiddleware.js'
 import cors from "cors"
+import session from "express-session" // Add this line
 import {order,verify,cancel,verifyAccount} from "./controllers/paymentController.js"
 // import adminRoutes from "./routes/adminRoutes.js"
 // import { adminRegister } from './controllers/admincontroller.js'
@@ -25,6 +26,22 @@ app.use(cors({
     credentials: true,
     allowedHeaders: "Content-Type, Authorization",
 }))
+
+// --- SESSION MIDDLEWARE ---
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "your-session-secret", // Set a strong secret in .env
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: false, // Set to true if using HTTPS
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24, // 1 day
+      sameSite: "lax"
+    }
+  })
+);
+// --------------------------
 
 app.use(express.json({ limit: "10mb" }));
 app.use(bodyParser.urlencoded({ extended: true, limit: "10mb" }));

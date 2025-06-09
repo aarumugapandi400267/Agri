@@ -116,10 +116,10 @@ const FarmerOrderList = () => {
     setAnchorEl(null);
   };
 
-  const handleApproveCancel = (orderId) => {
-    setSelectedOrderId(orderId);
-    setConfirmOpen(true);
-  };
+  // const handleApproveCancel = (orderId) => {
+  //   setSelectedOrderId(orderId);
+  //   setConfirmOpen(true);
+  // };
 
   const handleConfirmApprove = async () => {
     if (selectedOrderId) {

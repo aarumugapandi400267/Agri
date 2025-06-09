@@ -32,6 +32,22 @@ export const updateProductById = (id, updatedProduct) => async (dispatch) => {
     }
 };
 
+export const deleteProductById = (id) => async (dispatch) => {
+    try {
+        const {data} = await api.deleteProductById(id);
+
+        dispatch({
+            type: GETPRODUCTS,
+            payload: data
+        })
+ 
+        return data;
+    }catch (error) {
+        console.error("Product Deletion Error:", error.response?.data || error.message);
+        return { error: error.response?.data || error.message };
+    }
+}
+
 export const createProduct=(product)=>async(dispatch)=>{
     try {
         const {data}=await api.createProduct(product)

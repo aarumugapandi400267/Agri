@@ -21,7 +21,7 @@ import {
   IconButton,
   Tooltip
 } from "@mui/material";
-import { getProductsById, updateProductById, createProduct } from "../../../actions/products";
+import { getProductsById, updateProductById, createProduct, deleteProductById } from "../../../actions/products";
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -114,6 +114,10 @@ const ProductList = ({ dispatch }) => {
       setNewProduct({ ...newProduct, image: file });
     }
   };
+
+  const handleDelete = async (productId) => {
+      dispatch(deleteProductById(productId))
+  }
 
   const handleSave = async () => {
     if (selectedProduct) {
@@ -224,7 +228,7 @@ const ProductList = ({ dispatch }) => {
                 </IconButton>
               </Tooltip>
               <Tooltip title="Delete Product">
-                <IconButton color="error" >
+                <IconButton color="error" onClick={() => handleDelete(product._id)}>
                   <DeleteIcon />
                 </IconButton>
               </Tooltip>
@@ -404,3 +408,4 @@ const ProductList = ({ dispatch }) => {
 };
 
 export default ProductList;
+ 

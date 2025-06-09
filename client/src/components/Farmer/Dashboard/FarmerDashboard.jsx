@@ -32,14 +32,15 @@ export default function FarmerDashboard() {
   const deliveredOrders = orders.filter(o => o.status === "Delivered").length;
   const cancelledOrders = orders.filter(o => o.status === "Cancelled").length;
 
+  const profileImage = JSON.parse(localStorage.getItem("profile"))?.user?.profileImage || "";
   // NAVIGATION config
   const NAVIGATION = [
     {
       title: "Profile",
       icon: (
-        <Avatar src={JSON.parse(localStorage.getItem("profile"))?._doc?.image || ""}>
-          {!JSON.parse(localStorage.getItem("profile"))?._doc?.image &&
-            JSON.parse(localStorage.getItem("profile"))?._doc?.name?.charAt(0)}
+        <Avatar src={profileImage}>
+          {!JSON.parse(localStorage.getItem("profile"))?.user?.image &&
+            JSON.parse(localStorage.getItem("profile"))?.user?.name?.charAt(0)}
         </Avatar>
       ),
       component: <Profile />,

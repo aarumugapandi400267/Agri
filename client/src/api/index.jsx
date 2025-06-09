@@ -33,6 +33,15 @@ export const updateProductById = async(id, updatedProduct) =>{
     }
 };
 
+export const deleteProductById = async(id) => {
+    try {
+        return await API.delete(`/products/${id}`);
+    } catch (error) {
+        console.error("Product Deletion Error:", error.response?.data || error.message);
+        return { error: error.response?.data || error.message };
+    }
+}
+
 export const createProduct=async(product)=>{
     try {
         return await API.post("/products",product)

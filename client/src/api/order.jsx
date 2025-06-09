@@ -71,3 +71,12 @@ export const updateItemStatus = async (orderId, itemId, status) => {
 		throw error;
 	}
 }
+
+export const createAccount = async (accountData) => {
+	try {
+		return await API.post("/payment/account/create", accountData);
+	} catch (error) {
+		console.error("Error creating account:", error.response?.data || error.message);
+		throw error;
+	}
+}
