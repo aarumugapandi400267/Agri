@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { getAllTransactions } from "../../api/adminapi";
+import { useDispatch } from "react-redux";
+import { fetchAllTransactions } from "../../actions/admin"; // <-- Import the Redux action
 
 export default function Transactions() {
   const [transactions, setTransactions] = useState([]);
-  const token = localStorage.getItem("adminToken");
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    getAllTransactions(token).then(setTransactions);
-  }, [token]);
+    dispatch(fetchAllTransactions()).then(setTransactions);
+  }, [dispatch]);
 
   return (
     <div>

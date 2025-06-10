@@ -21,7 +21,8 @@ import {
   Pagination,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import { getAllUsers } from "../../api/adminapi";
+import { useDispatch } from "react-redux";
+import { fetchAllUsers } from "../../actions/admin"; // <-- Use the Redux action
 
 const regions = [
   "All Regions",
@@ -48,15 +49,15 @@ export default function UserManagement() {
   const [regionFilter, setRegionFilter] = useState("All Regions");
   const [currentPage, setCurrentPage] = useState(1);
 
-  const token = localStorage.getItem("adminToken");
+  const dispatch = useDispatch();
 
   useEffect(() => {
     setIsLoading(true);
-    getAllUsers(token).then((data) => {
+    dispatch(fetchAllUsers()).then((data) => {
       setUsers(data || []);
       setIsLoading(false);
     });
-  }, [token]);
+  }, [dispatch]);
 
   // Filter users
   const filteredUsers = users.filter((user) => {

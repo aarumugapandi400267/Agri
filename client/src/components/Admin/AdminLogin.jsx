@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { adminLogin } from "../../api/adminapi";
+import { useDispatch } from "react-redux";
+import { adminLogin } from "../../actions/admin"; // Use the action, not the API directly
 import { Box, Paper, Typography, TextField, Button, IconButton, InputAdornment } from "@mui/material";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
@@ -11,15 +12,20 @@ export default function AdminLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const res = await adminLogin(email, password);
-    if (res.token) {
-      localStorage.setItem("adminToken", res.token);
-      navigate("/admin/dashboard");
-    } else {
-      setError(res.error || "Login failed");
+    try {
+      const res = await dispatch(adminLogin({ email, password }));
+      if (res.token) {
+        localStorage.setItem("adminToken", res.token);
+        navigate("/admin/dashboard");
+      } else {
+        setError(res.error || "Login failed");
+      }
+    } catch (err) {
+      setError("Login failed:"+err.message);
     }
   };
 

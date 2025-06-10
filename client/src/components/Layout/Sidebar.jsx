@@ -1,7 +1,6 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
-  Box,
   Drawer,
   List,
   ListItem,
@@ -80,33 +79,24 @@ export default function Sidebar({ user, onLogout }) {
   const location = useLocation();
 
   return (
-    <Drawer
-      variant="permanent"
-      sx={{
-        width: 240,
-        flexShrink: 0,
-        [`& .MuiDrawer-paper`]: {
-          width: 240,
-          boxSizing: "border-box",
-          background: "#fff",
-          borderRight: "1px solid #e0e0e0",
-        },
-        display: { xs: "none", md: "block" },
-      }}
-      open
-    >
-      <Box sx={{ p: 3, pb: 0, display: "flex", alignItems: "center" }}>
-        <Avatar sx={{ bgcolor: "#43a047", width: 40, height: 40, fontWeight: 700 }}>
+    <Drawer variant="permanent">
+      <div style={{ padding: 24, paddingBottom: 0, display: "flex", alignItems: "center" }}>
+        <Avatar
+          sx={{ bgcolor: "#43a047", width: 40, height: 40, fontWeight: 700 }}
+        >
           FM
         </Avatar>
-        <Typography variant="h6" sx={{ ml: 2, fontWeight: 700, color: "#1976d2" }}>
+        <Typography
+          variant="h6"
+          sx={{ ml: 2, fontWeight: 700, color: "#1976d2" }}
+        >
           FARKIT
         </Typography>
-      </Box>
-      <Divider sx={{ my: 2 }} />
-      <Box sx={{ flexGrow: 1 }}>
+      </div>
+      <Divider style={{ margin: "16px 0" }} />
+      <div>
         {navItems.map((section, idx) => (
-          <Box key={idx} sx={{ mb: 1 }}>
+          <div key={idx}>
             <Typography
               variant="caption"
               sx={{ pl: 3, color: "#888", fontWeight: 600, letterSpacing: 1 }}
@@ -133,31 +123,31 @@ export default function Sidebar({ user, onLogout }) {
                 </ListItem>
               ))}
             </List>
-          </Box>
+          </div>
         ))}
-      </Box>
-      <Box sx={{ p: 2, borderTop: "1px solid #eee" }}>
-        <Box sx={{ display: "flex", alignItems: "center" }}>
+      </div>
+      <div style={{ padding: 16, borderTop: "1px solid #eee" }}>
+        <div style={{ display: "flex", alignItems: "center" }}>
           <Avatar src={user?.profileImage} sx={{ width: 36, height: 36, mr: 1 }}>
             {user?.name?.[0] || <AccountCircleIcon />}
           </Avatar>
-          <Box>
+          <div>
             <Typography variant="body2" fontWeight={600}>
               {user?.name || "Admin"}
             </Typography>
             <Typography variant="caption" color="text.secondary">
               Administrator
             </Typography>
-          </Box>
+          </div>
           <Button
             onClick={onLogout}
-            sx={{ ml: "auto", minWidth: 0, color: "#888" }}
+            style={{ marginLeft: "auto" }}
             title="Logout"
           >
             <LogoutIcon />
           </Button>
-        </Box>
-      </Box>
+        </div>
+      </div>
     </Drawer>
   );
 }

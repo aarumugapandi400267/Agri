@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -178,7 +179,7 @@ export default function ProductCard({ product }) {
           </Box>
 
           <Stack direction="row" justifyContent="center" spacing={2} mt={3}>
-            <Tooltip title="Buy Now">
+            {/* <Tooltip title="Buy Now">
               <Button
                 variant="contained"
                 color="primary"
@@ -188,14 +189,14 @@ export default function ProductCard({ product }) {
               >
                 <ShoppingBagIcon />
               </Button>
-            </Tooltip>
+            </Tooltip> */}
             <Tooltip title="Add to Cart">
               <Button
                 variant="outlined"
                 color="primary"
                 size="small"
                 onClick={handleAddToCart}
-                sx={{ borderRadius: 8 }}
+                sx={{ borderRadius: 8,width: '100%' }}
               >
                 <ShoppingCartIcon />
               </Button>

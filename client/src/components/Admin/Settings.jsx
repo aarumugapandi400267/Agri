@@ -1,83 +1,19 @@
 import React, { useEffect, useState } from "react";
-
-const API_URL = "http://localhost:5000/api/admin";
-const token = localStorage.getItem("adminToken");
-
-// Category helpers
-async function fetchCategories() {
-  const res = await fetch(`${API_URL}/categories`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.json();
-}
-
-async function addCategory(name, description) {
-  const res = await fetch(`${API_URL}/categories`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ name, description }),
-  });
-  return res.json();
-}
-
-async function updateCategory(id, name, description) {
-  const res = await fetch(`${API_URL}/categories/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ name, description }),
-  });
-  return res.json();
-}
-
-async function deleteCategory(id) {
-  const res = await fetch(`${API_URL}/categories/${id}`, {
-    method: "DELETE",
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.json();
-}
-
-// Region helpers
-async function fetchRegions() {
-  const res = await fetch(`${API_URL}/regions`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.json();
-}
-
-async function addRegion(name, description) {
-  const res = await fetch(`${API_URL}/regions`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ name, description }),
-  });
-  return res.json();
-}
-
-async function updateRegion(id, name, description) {
-  const res = await fetch(`${API_URL}/regions/${id}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ name, description }),
-  });
-  return res.json();
-}
-
-async function deleteRegion(id) {
-  const res = await fetch(`${API_URL}/regions/${id}`, {
-    method: "DELETE",
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.json();
-}
+import { useDispatch } from "react-redux";
+import {
+  fetchAllCategories,
+  addCategory,
+  editCategory,
+  removeCategory,
+  fetchAllRegions,
+  addRegion,
+  editRegion,
+  removeRegion,
+} from "../../actions/admin";
 
 export default function Settings() {
+  const dispatch = useDispatch();
+
   // Categories state
   const [categories, setCategories] = useState([]);
   const [catName, setCatName] = useState("");
@@ -91,46 +27,46 @@ export default function Settings() {
   const [editRegId, setEditRegId] = useState(null);
 
   useEffect(() => {
-    fetchCategories().then(setCategories);
-    fetchRegions().then(setRegions);
-  }, []);
+    dispatch(fetchAllCategories()).then(setCategories);
+    dispatch(fetchAllRegions()).then(setRegions);
+  }, [dispatch]);
 
   // Category handlers
   const handleAddOrUpdateCat = async (e) => {
     e.preventDefault();
     if (editCatId) {
-      await updateCategory(editCatId, catName, catDesc);
+      await dispatch(editCategory(editCatId, { name: catName, description: catDesc }));
     } else {
-      await addCategory(catName, catDesc);
+      await dispatch(addCategory({ name: catName, description: catDesc }));
     }
     setCatName(""); setCatDesc(""); setEditCatId(null);
-    fetchCategories().then(setCategories);
+    dispatch(fetchAllCategories()).then(setCategories);
   };
   const handleEditCat = (cat) => {
     setEditCatId(cat._id); setCatName(cat.name); setCatDesc(cat.description || "");
   };
   const handleDeleteCat = async (id) => {
-    await deleteCategory(id);
-    fetchCategories().then(setCategories);
+    await dispatch(removeCategory(id));
+    dispatch(fetchAllCategories()).then(setCategories);
   };
 
   // Region handlers
   const handleAddOrUpdateReg = async (e) => {
     e.preventDefault();
     if (editRegId) {
-      await updateRegion(editRegId, regName, regDesc);
+      await dispatch(editRegion(editRegId, { name: regName, description: regDesc }));
     } else {
-      await addRegion(regName, regDesc);
+      await dispatch(addRegion({ name: regName, description: regDesc }));
     }
     setRegName(""); setRegDesc(""); setEditRegId(null);
-    fetchRegions().then(setRegions);
+    dispatch(fetchAllRegions()).then(setRegions);
   };
   const handleEditReg = (reg) => {
     setEditRegId(reg._id); setRegName(reg.name); setRegDesc(reg.description || "");
   };
   const handleDeleteReg = async (id) => {
-    await deleteRegion(id);
-    fetchRegions().then(setRegions);
+    await dispatch(removeRegion(id));
+    dispatch(fetchAllRegions()).then(setRegions);
   };
 
   return (

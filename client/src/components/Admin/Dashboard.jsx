@@ -4,7 +4,8 @@ import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
-import { getDashboardKPIs } from "../../api/adminapi";
+import { useDispatch } from "react-redux";
+import { fetchDashboardKPIs } from "../../actions/admin"; // <-- Import the action
 
 const StatCard = ({ title, value, icon, isLoading, growth }) => (
   <Card elevation={3} sx={{ borderRadius: 3 }}>
@@ -37,15 +38,15 @@ const StatCard = ({ title, value, icon, isLoading, growth }) => (
 export default function Dashboard() {
   const [kpis, setKpis] = useState(null);
   const [loading, setLoading] = useState(true);
-  const token = localStorage.getItem("adminToken");
+  const dispatch = useDispatch();
 
   useEffect(() => {
     setLoading(true);
-    getDashboardKPIs(token).then(data => {
+    dispatch(fetchDashboardKPIs()).then(data => {
       setKpis(data);
       setLoading(false);
     });
-  }, [token]);
+  }, [dispatch]);
 
   return (
     <Box sx={{ p: { xs: 2, md: 4 } }}>

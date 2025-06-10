@@ -49,6 +49,8 @@ import {
 } from "../../../actions/customer/cart";
 import { placeOrder, verifyPayment } from "../../../actions/customer/order";
 import { addUserAddress, getUser } from "../../../actions/user";
+import MuiAlert from "@mui/material/Alert";
+import Snackbar from "@mui/material/Snackbar";
 
 const steps = ["Cart", "Shipping", "Payment"];
 
@@ -78,6 +80,7 @@ export default function Cart() {
     country: "India",
     type: "home",
   });
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
   const fetchCart = async () => {
     setLoading(true);
@@ -138,6 +141,14 @@ export default function Cart() {
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({ open: true, message, severity });
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
   const handleOrder = async () => {
     setLoading(true);
     try {
@@ -171,12 +182,12 @@ export default function Cart() {
                   razorpay_signature: paymentResponse.razorpay_signature,
                 })
               );
-              alert("Payment successful!");
+              showSnackbar("Payment successful!", "success");
               await dispatch(clearCart());
               fetchCart();
               setActiveStep(0);
             } catch (err) {
-              alert("Payment verification failed. Please contact support.");
+              showSnackbar("Payment verification failed. Please contact support.", "error");
             } finally {
               setLoading(false);
             }
@@ -189,21 +200,21 @@ export default function Cart() {
           modal: {
             ondismiss: function () {
               setLoading(false);
-              alert("Payment cancelled.");
+              showSnackbar("Payment cancelled.", "info");
             },
           },
         };
         const rzp = new window.Razorpay(options);
         rzp.open();
       } else {
-        alert("Order placed successfully!");
+        showSnackbar("Order placed successfully!", "success");
         await dispatch(clearCart());
         fetchCart();
         setActiveStep(0);
       }
     } catch (error) {
       console.error("Order placement failed:", error);
-      alert("Order placement failed. Please try again.");
+      showSnackbar("Order placement failed. Please try again.", "error");
     } finally {
       setLoading(false);
     }
@@ -231,8 +242,9 @@ export default function Cart() {
         type: "home",
       });
       await dispatch(getUser()); // Refresh user data
+      showSnackbar("Address added successfully!", "success");
     } catch (error) {
-      alert("Failed to add address. Please try again.");
+      showSnackbar("Failed to add address. Please try again.", "error");
     }
   };
 
@@ -870,6 +882,17 @@ export default function Cart() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <MuiAlert onClose={handleSnackbarClose} severity={snackbar.severity} sx={{ width: "100%" }}>
+          {snackbar.message}
+        </MuiAlert>
+      </Snackbar>
     </Box>
   );
 }

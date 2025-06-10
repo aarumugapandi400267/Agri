@@ -20,7 +20,8 @@ import {
   Pagination,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import { getAllProducts, approveProduct } from "../../api/adminapi";
+import { useDispatch } from "react-redux";
+import { fetchAllProducts, editProduct } from "../../actions/admin"; // <-- Use actions
 
 const statusOptions = [
   { label: "All Status", value: "all" },
@@ -39,15 +40,15 @@ export default function ProductApproval() {
   const [currentPage, setCurrentPage] = useState(1);
   const [actionLoading, setActionLoading] = useState(false);
 
-  const token = localStorage.getItem("adminToken");
+  const dispatch = useDispatch();
 
   useEffect(() => {
     setIsLoading(true);
-    getAllProducts(token).then((data) => {
+    dispatch(fetchAllProducts()).then((data) => {
       setProducts(data || []);
       setIsLoading(false);
     });
-  }, [token]);
+  }, [dispatch]);
 
   // Filter products
   const filteredProducts = products.filter((product) => {
@@ -93,7 +94,7 @@ export default function ProductApproval() {
   // Approve or reject product
   const handleUpdateStatus = async (id, approved) => {
     setActionLoading(true);
-    await approveProduct(id, approved, token);
+    await dispatch(editProduct(id, { status: approved ? "approved" : "rejected" }));
     setProducts((prev) =>
       prev.map((p) =>
         p._id === id

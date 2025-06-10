@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import { updateAdminProfile, updateAdminPassword, fetchAdminProfile } from "../../actions/admin";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -16,67 +16,61 @@ const AdminProfile = () => {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
   const { toast } = useToast();
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    // Fetch admin profile from backend
+    // Fetch admin profile from backend using Redux action
     const fetchProfile = async () => {
       try {
-        const token = localStorage.getItem("adminToken");
-        const res = await apiRequest("GET", "/api/admin/profile", null, {
-          Authorization: `Bearer ${token}`,
-        });
-        setAdmin(res.admin);
-        setName(res.admin.name);
-        setEmail(res.admin.email);
+        const res = await dispatch(fetchAdminProfile());
+        setAdmin(res);
+        setName(res.name);
+        setEmail(res.email);
       } catch (err) {
+        console.log(err);
         setAdmin(null);
       }
     };
     fetchProfile();
-  }, []);
+  }, [dispatch]);
 
-  const updateProfile = useMutation({
-    mutationFn: async () => {
-      const token = localStorage.getItem("adminToken");
-      return apiRequest(
-        "PATCH",
-        "/api/admin/profile",
-        { name, email },
-        { Authorization: `Bearer ${token}` }
-      );
-    },
-    onSuccess: (data) => {
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    setProfileLoading(true);
+    try {
+      await dispatch(updateAdminProfile({ name, email }));
       setAdmin((prev) => ({ ...prev, name, email }));
       toast({
         title: "Profile Updated",
         description: "Your profile information has been updated successfully.",
         variant: "default",
       });
-    },
-    onError: (error) => {
+    } catch (error) {
       toast({
         title: "Failed to Update Profile",
         description: error instanceof Error ? error.message : "Unknown error occurred",
         variant: "destructive",
       });
-    },
-  });
+    }
+    setProfileLoading(false);
+  };
 
-  const updatePassword = useMutation({
-    mutationFn: async () => {
-      if (newPassword !== confirmPassword) {
-        throw new Error("New passwords don't match");
-      }
-      const token = localStorage.getItem("adminToken");
-      return apiRequest(
-        "PATCH",
-        "/api/admin/profile/password",
-        { currentPassword, newPassword },
-        { Authorization: `Bearer ${token}` }
-      );
-    },
-    onSuccess: () => {
+  const handleUpdatePassword = async (e) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: "Failed to Update Password",
+        description: "New passwords don't match",
+        variant: "destructive",
+      });
+      return;
+    }
+    setPasswordLoading(true);
+    try {
+      await dispatch(updateAdminPassword({ currentPassword, newPassword }));
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -85,24 +79,14 @@ const AdminProfile = () => {
         description: "Your password has been updated successfully.",
         variant: "default",
       });
-    },
-    onError: (error) => {
+    } catch (error) {
       toast({
         title: "Failed to Update Password",
         description: error instanceof Error ? error.message : "Unknown error occurred",
         variant: "destructive",
       });
-    },
-  });
-
-  const handleUpdateProfile = (e) => {
-    e.preventDefault();
-    updateProfile.mutate();
-  };
-
-  const handleUpdatePassword = (e) => {
-    e.preventDefault();
-    updatePassword.mutate();
+    }
+    setPasswordLoading(false);
   };
 
   if (!admin) {
@@ -173,9 +157,9 @@ const AdminProfile = () => {
                   <Button
                     type="submit"
                     className="w-full md:w-auto"
-                    disabled={updateProfile.isPending}
+                    disabled={profileLoading}
                   >
-                    {updateProfile.isPending ? "Updating..." : "Update Profile"}
+                    {profileLoading ? "Updating..." : "Update Profile"}
                   </Button>
                 </div>
               </form>
@@ -229,9 +213,9 @@ const AdminProfile = () => {
                   <Button
                     type="submit"
                     className="w-full md:w-auto"
-                    disabled={updatePassword.isPending}
+                    disabled={passwordLoading}
                   >
-                    {updatePassword.isPending ? "Updating..." : "Update Password"}
+                    {passwordLoading ? "Updating..." : "Update Password"}
                   </Button>
                 </div>
               </form>

@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getFarmerBankDetails } from "../../api/adminapi";
+import { useDispatch } from "react-redux";
+import { fetchFarmerBankDetails } from "../../actions/admin"; // <-- Import the action
 
 export default function FarmerBankDetails() {
   const { id } = useParams();
   const [bank, setBank] = useState(null);
-  const token = localStorage.getItem("adminToken");
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    getFarmerBankDetails(id, token).then(setBank);
-  }, [id, token]);
+    dispatch(fetchFarmerBankDetails(id)).then(setBank);
+  }, [dispatch, id]);
 
   if (!bank) return <div>Loading...</div>;
 
